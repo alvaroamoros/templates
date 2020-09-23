@@ -22,19 +22,19 @@ pnorm(2) - pnorm(-2)
 
 #SE of the spred = 2 * SE  <- 2*sqrt(p*(1-p)/N)
 
-# X¯ is the Sample Average. The bar on the top denotates that the average is a Rando Variable, it is the average of random Draws
-#X¯ = X1+X2...Xn / N
+# X? is the Sample Average. The bar on the top denotates that the average is a Rando Variable, it is the average of random Draws
+#X? = X1+X2...Xn / N
 
 #p <- The proportion of blue beads in the urn, is a Parameter that We estimate, we do not knoe the true proportion, we can only estimate it
 
 
 #Properties of Our Estimate
 
-# The expected value of  X¯  is the parameter of interest  p, as X¯ is the sum of independent draws times a constant N
-#E(X¯) = p
+# The expected value of  X?  is the parameter of interest  p, as X? is the sum of independent draws times a constant N
+#E(X?) = p
 
-#As N increases the Standard error of X¯ decreases
-#SE(X¯)sqrt(p*1-p/N)
+#As N increases the Standard error of X? decreases
+#SE(X?)sqrt(p*1-p/N)
 
 #The expecterd value of the sum of draws E(S) and the SE(S)
 # E(S) = N*p
@@ -52,12 +52,12 @@ pnorm(2) - pnorm(-2)
 # What is the standard error of S?
 # SE(S)=sqrt(25p(1???p))
 
-# What is the expected value of X¯?
-# E(X¯)=p
+# What is the expected value of X??
+# E(X?)=p
 
 
-# What is the standard error of the sample average, X¯?
-# SE(X¯)=p(1???p)/N
+# What is the standard error of the sample average, X??
+# SE(X?)=p(1???p)/N
 
 # Exercise 2
 # Write a line of code that calculates the standard error se of a sample average when you poll 25 people in the population. 
@@ -82,21 +82,21 @@ for (N in sample_sizes){
 
 #The Central Limit Theorem in Practice
 
-# Because  X¯  is the sum of random draws divided by a constant, the distribution of  X¯  is approximately norma
+# Because  X?  is the sum of random draws divided by a constant, the distribution of  X?  is approximately norma
 
-# We can convert  X¯  to a standard normal random variable  Z : 
-# Z= X¯ ??? E(X¯) / SE(X¯)
+# We can convert  X?  to a standard normal random variable  Z : 
+# Z= X? ??? E(X?) / SE(X?)
 
-#The probability that  X¯  is within .01 of the actual value of  p  is:
+#The probability that  X?  is within .01 of the actual value of  p  is:
 #Pr(Z <= 0.01 / sqrt(p*(1-p)/N) - Pr(Z <=0.01 / sqrt(p*(1-p)/N)
 
-#The Central Limit Theorem (CLT) still works if  X¯  is used in place of  p . This is called a plug-in estimate. Hats over values denote estimates. Therefore:
-#SE¯(X¯) = sqrt(X¯*(1-X¯)*N)
+#The Central Limit Theorem (CLT) still works if  X?  is used in place of  p . This is called a plug-in estimate. Hats over values denote estimates. Therefore:
+#SE?(X?) = sqrt(X?*(1-X?)*N)
 
-# Using the CLT, the probability that  X¯  is within .01 of the actual value of  p  is:
-# 0.1/sqrt(X¯*(1-X¯)*N) - -0.1/sqrt(X¯*(1-X¯)*N)
+# Using the CLT, the probability that  X?  is within .01 of the actual value of  p  is:
+# 0.1/sqrt(X?*(1-X?)*N) - -0.1/sqrt(X?*(1-X?)*N)
 
-#Computing the probabilities of X¯ being within 0.1 of p
+#Computing the probabilities of X? being within 0.1 of p
 X_hat <- 0.48
 se <- sqrt(X_hat*(1-X_hat)/25)
 pnorm(0.01/se) - pnorm(-0.01/se)
@@ -138,8 +138,8 @@ take_sample(0.45, 100)
 
 # Exercise 2. Distribution of errors 
 #Assume the proportion of Democrats in the population p equals 0.45 and that your sample size N is 100 polled voters. 
-#The take_sample function you defined previously generates our estimate, X¯.
-# Replicate the random sampling 10,000 times and calculate p???X¯ for each random sample. Save these differences as a vector called errors. 
+#The take_sample function you defined previously generates our estimate, X?.
+# Replicate the random sampling 10,000 times and calculate p???X? for each random sample. Save these differences as a vector called errors. 
 #Find the average of errors and plot a histogram of the distribution.
 # Calculate the sample average if the proportion of Democrats equals 0.45 and the sample size is 100.
 p <- 0.45
@@ -158,7 +158,7 @@ mean(errors)
 # Exercise 3 - Plot a histogram of the values contained in the vector errors. Which statement best describes the distribution of the errors?
 hist(errors)
 
-# Exercise 4 - What is the average size of the error if we define the size by taking the absolute value ???p???X¯??? ?
+# Exercise 4 - What is the average size of the error if we define the size by taking the absolute value ???p???X???? ?
 p <-0.45
 N <- 1000
 B <- 10000
@@ -169,7 +169,7 @@ errors <- replicate(B, p - take_sample(p, N))
 mean(abs(errors))    
 
 # Exercise 5 - Standard deviation of the spread
-# As we have discussed, the standard error is the square root of the average squared distance (X¯???p)^2
+# As we have discussed, the standard error is the square root of the average squared distance (X????p)^2
 sqrt(mean(errors^2))
 
 # Exercise 6 - Estimate the standard error given an expected value of 0.45 and a sample size of 100
@@ -177,7 +177,7 @@ sqrt(p*(1-p)/N)
 
 
 # Exercise 7. Standard error of the estimate
-# In practice, we don't know p, so we construct an estimate of the theoretical prediction based by plugging in X¯ for p. Calculate the standard error of the estimate:
+# In practice, we don't know p, so we construct an estimate of the theoretical prediction based by plugging in X? for p. Calculate the standard error of the estimate:
 N <- 100
 p <- 0.45
 
@@ -201,11 +201,11 @@ qqnorm(errors)
 qqline(errors)
 
 #Exercise 12. Estimating the probability of a specific value of X-bar
-# If p=0.45 and N=100, use the central limit theorem to estimate the probability that X¯>0.5.
+# If p=0.45 and N=100, use the central limit theorem to estimate the probability that X?>0.5.
 1- pnorm(0.5, p, se)
 
 # Exercise 13. Exercise 13. Estimating the probability of a specific error size
-# Assume you are in a practical situation and you don't know p. Take a sample of size N=100 and obtain a sample average of X¯=0.51.
+# Assume you are in a practical situation and you don't know p. Take a sample of size N=100 and obtain a sample average of X?=0.51.
 #What is the CLT approximation for the probability that your error size is equal or larger than 0.01?
 
 X_hat <- 0.51
@@ -267,7 +267,7 @@ mean(inside)
 
 #The Null Hypothesis: THe spread is 0
 #If we have 52 blue
-# 2 - X_hat = 0.04 <- The p-values asks ¿How likely is it to see a value this large when H0 is true
+# 2 - X_hat = 0.04 <- The p-values asks ?How likely is it to see a value this large when H0 is true
 #Pr(|X_hat-0.5|>0.02)  <- THis is te same as asking if the spread is 4% or more
 #H0: Spread=0 <- p=0.5
 N=100
@@ -747,7 +747,7 @@ posterior_mean + c(-1.96, 1.96)*posterior_se
   #  b  is the general bias affecting all pollsters
   #  hi  represents the house effect for the  i th pollster
   #  ??i,j  represents the random error associated with the  i,j th poll.
-  #  The sample average is now  X¯=d+b+1N???i=1NXi  with standard deviation  SE(X¯)=??2/N+??2b?????????????????????????????? .
+  #  The sample average is now  X?=d+b+1N???i=1NXi  with standard deviation  SE(X?)=??2/N+??2b?????????????????????????????? .
   #  The standard error of the general bias  ??b  does not get reduced by averaging multiple polls, which increases the variability of our final estimate.
 
 # Simulated data with  Xj=d+??j
@@ -1382,4 +1382,10 @@ two_by_two %>% select(-Hit) %>% chisq.test()
   brexit_long %>%
     ggplot(aes(enddate, proportion, color = vote)) +
     geom_smooth(method = "loess", span = 0.3)
+  
+  
+  #### Test addition
+  x <- 1
+  s <- 232
+  f <- 32
   
