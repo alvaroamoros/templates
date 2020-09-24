@@ -1383,9 +1383,5 @@ two_by_two %>% select(-Hit) %>% chisq.test()
     ggplot(aes(enddate, proportion, color = vote)) +
     geom_smooth(method = "loess", span = 0.3)
   
-  
-  #### Test addition
-  x <- 1
-  s <- 232
-  f <- 32
+ 
   
