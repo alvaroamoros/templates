@@ -20,6 +20,8 @@ library(ggrepel)
 
 library(ggplot2)
 
+library(epitools)
+
 
 install.packages("dplyr")
 
@@ -40,4 +42,3 @@ install.packages("ggplot2")
 install.packages("epitools")
 
 
-library(epitools)
