@@ -354,3 +354,33 @@ tab
 tab <- tab %>% setNames(c("state", "population", "total", "murders", "gun_murders", "gun_ownership", "total_rate", "murder_rate", "gun_murder_rate"))
 head(tab)
 
+# CSS Selectors
+h <- read_html("https://foodnetwork.co.uk/recipes/guacamole/")
+recipe <- h %>% html_node(".o-AssetTitle__a-HeadlineText") %>% html_text()
+prep_time <- h %>% html_node(".m-RecipeInfo__a-Description--Total") %>% html_text()
+ingredients <- h %>% html_nodes(".o-Ingredients__a-Ingredient") %>% html_text()
+
+guacamole <- list(recipe, prep_time, ingredients)
+guacamole
+
+get_recipe <- function(url){
+  h <- read_html(url)
+  recipe <- h %>% html_node("//h1") %>% html_text()
+  prep_time <- h %>% html_node("//li[(((count(preceding-sibling::*) + 1) = 1) and parent::*)]//strong") %>% html_text()
+  ingredients <- h %>% html_nodes("//*[contains(concat( " ", @class, " " ), concat( " ", "ingredient", " " ))]") %>% html_text()
+  return(list(recipe = recipe, prep_time = prep_time, ingredients = ingredients))
+} 
+get_recipe("https://foodnetwork.co.uk/recipes/pancakes-4926/")
+
+
+# Assessment: Web Scraping
+library(rvest)
+url <- "https://web.archive.org/web/20181024132313/http://www.stevetheump.com/Payrolls.htm"
+h <- read_html(url)
+
+# Extract first table. In html nodes for tables are "table"
+nodes <- html_nodes(h, "table")
+
+html_text(nodes[[8]])
+
+html_table(nodes[[8]])
