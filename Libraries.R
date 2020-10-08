@@ -9,6 +9,8 @@ library(ggrepel)
 library(ggplot2)
 library(epitools)
 library(rvest)
+library(Lahman)
+
 
 install.packages("dplyr")
 install.packages("tidyverse")
@@ -20,4 +22,5 @@ install.packages("ggrepel")
 install.packages("ggplot2")
 install.packages("epitools")
 install.packages("rvest")
+install.packages("Lahman")
 
