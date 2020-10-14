@@ -10,7 +10,8 @@ library(ggplot2)
 library(epitools)
 library(rvest)
 library(Lahman)
-
+library(purrr)
+library(exuber)
 
 install.packages("dplyr")
 install.packages("tidyverse")
@@ -23,4 +24,5 @@ install.packages("ggplot2")
 install.packages("epitools")
 install.packages("rvest")
 install.packages("Lahman")
-
+install.packages("purrr")
+install.packages("exuber")

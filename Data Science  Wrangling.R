@@ -120,45 +120,45 @@ dat - raw_data %% gather(key, value, -country)
 dat
 
 <<<<<<< HEAD
-  # Separate <- separates different elements of a name
-    # Arguments (apart from the data):
-      # 1. name of the column to be separated
-      # 2. names to be used in the new columns
-      # 3. the character that separates the variable
-
-      dat %>% separate(key, c("year", "variable_name"), "_")
-      # We optain to many values
-
-      dat %>% separate(key, c("year", "first_variable_name", "second_variable_name"),
-                       fill = "right")
-
-      # Argument extra, merges two variables if there is an extra separation
-      dat %>% separate(key, c("year", "variable_name"), sep = "_", extra = "merge")
-
-      dat %>% separate(key, c("year", "variable_name"), sep = "_", extra = "merge") %>%
-        spread(variable_name, value)
-
-      # We can obtain the same result using the unite function
-      dat %>%
-        separate(key, c("year", "first_variable_name", "second_variable_name"), fill = "right") %>%
-        unite(variable_name, first_variable_name, second_variable_name, sep="_")
-
-      dat %>%
-        separate(key, c("year", "first_variable_name", "second_variable_name"), fill = "right") %>%
-        unite(variable_name, first_variable_name, second_variable_name, sep="_") %>%
-        spread(variable_name, value) %>%
-        rename(fertility = fertility_NA)
-
-
-#Assessment Part 2: Reshaping Data
-=======
-# Separate - separates different elements of a name
-# Arguments (apart from the data)
+# Separate <- separates different elements of a name
+# Arguments (apart from the data):
 # 1. name of the column to be separated
 # 2. names to be used in the new columns
 # 3. the character that separates the variable
 
-dat %% separate(key, c(year, variable_name), _)
+dat %>% separate(key, c("year", "variable_name"), "_")
+# We optain to many values
+
+dat %>% separate(key, c("year", "first_variable_name", "second_variable_name"),
+                 fill = "right")
+
+# Argument extra, merges two variables if there is an extra separation
+dat %>% separate(key, c("year", "variable_name"), sep = "_", extra = "merge")
+
+dat %>% separate(key, c("year", "variable_name"), sep = "_", extra = "merge") %>%
+  spread(variable_name, value)
+
+# We can obtain the same result using the unite function
+dat %>%
+  separate(key, c("year", "first_variable_name", "second_variable_name"), fill = "right") %>%
+  unite(variable_name, first_variable_name, second_variable_name, sep="_")
+
+dat %>%
+  separate(key, c("year", "first_variable_name", "second_variable_name"), fill = "right") %>%
+  unite(variable_name, first_variable_name, second_variable_name, sep="_") %>%
+  spread(variable_name, value) %>%
+  rename(fertility = fertility_NA)
+
+
+#Assessment Part 2: Reshaping Data
+=======
+  # Separate - separates different elements of a name
+  # Arguments (apart from the data)
+  # 1. name of the column to be separated
+  # 2. names to be used in the new columns
+  # 3. the character that separates the variable
+  
+  dat %% separate(key, c(year, variable_name), _)
 # We optain to many values
 
 dat %% separate(key, c(year, first_variable_name, second_variable_name),
@@ -203,8 +203,8 @@ head(co2_tidy)
 # Questio 11 - Use co2_tidy to plot CO2 versus month with a different curve for each year:
 co2_tidy %>% ggplot(aes(as.numeric(month), co2, color = year)) + geom_line()
 =======
-#Question 10 - Run the following command to define the co2_wide object
-co2_wide - data.frame(matrix(co2, ncol = 12, byrow = TRUE)) %%
+  #Question 10 - Run the following command to define the co2_wide object
+  co2_wide - data.frame(matrix(co2, ncol = 12, byrow = TRUE)) %%
   setNames(112) %%
   mutate(year = as.character(19591997))
 co2_wide
@@ -229,14 +229,14 @@ dat_tidy
 # Question 13 Now use the admissions dataset to create the object tmp, which has columns major, gender, key and value:
 tmp <- gather(admissions, key, value, admitted:applicants)
 tmp
- # Combine the key and gender and create a new column called column_name to get a variable with the following values: admitted_men, admitted_women, applicants_men and applicants_women. Save the new data as tmp2.
+# Combine the key and gender and create a new column called column_name to get a variable with the following values: admitted_men, admitted_women, applicants_men and applicants_women. Save the new data as tmp2.
 tmp2 <- unite(tmp, column_name, c(key,gender))
 tmp2
 
 # Question 14 - Which function can reshape tmp2 to a table with six rows and five columns named major, admitted_men, admitted_women, applicants_men and applicants_women?
 spread(tmp2, column_name, value)
 =======
-dat - admissions %% select(-applicants)
+  dat - admissions %% select(-applicants)
 
 dat_tidy - spread(dat, gender, admitted)
 dat_tidy
@@ -252,14 +252,14 @@ tmp2
 spread(tmp2, column_name, value)
 
 
-    # Combining Tables
+# Combining Tables
 
-      # left_join() only keeps rows that have information in the first table.
-      # right_join() only keeps rows that have information in the second table.
-      # inner_join() only keeps rows that have information in both tables.
-      # full_join() keeps all rows from both tables.
-      # semi_join() keeps the part of first table for which we have information in the second.
-      # anti_join() keeps the elements of the first table for which there is no information in the second
+# left_join() only keeps rows that have information in the first table.
+# right_join() only keeps rows that have information in the second table.
+# inner_join() only keeps rows that have information in both tables.
+# full_join() keeps all rows from both tables.
+# semi_join() keeps the part of first table for which we have information in the second.
+# anti_join() keeps the elements of the first table for which there is no information in the second
 
 # import US murders data
 library(tidyverse)
@@ -345,7 +345,7 @@ setequal(c("a", "b", "c"),c("a","d","s"))
 setequal(tab1, tab2)
 
 
-    # Assessment: Combining Tables
+# Assessment: Combining Tables
 tab1 <- slice(murders, 1:6) %>% select(state, population)
 tab2 <- slice(results_us_election_2016, c(1:3,  7:8)) %>% select(state, electoral_votes)
 tab1
@@ -398,7 +398,7 @@ top <- top %>% select(playerID)
 setdiff(awards_2016, top)
 
 
-    # Web Scraping
+# Web Scraping
 library(rvest)
 url <- "https://en.wikipedia.org/wiki/Murder_in_the_United_States_by_state"
 h <- read_html(url)
@@ -446,7 +446,7 @@ html_text(nodes[[8]])
 
 html_table(nodes[[8]])
 
-  # Section 3: String Processing
+# Section 3: String Processing
 url <- "https://en.wikipedia.org/w/index.php?title=Gun_violence_in_the_United_States_by_state&direction=prev&oldid=810166167"
 murders_raw <- read_html(url) %>%
   html_nodes("table") %>%
@@ -728,122 +728,109 @@ tab %>% extract(x, c("feet", "inches"), regex = "(\\d)'(\\d{1,2})")
 
 #Using Groups and Quantifiers. Examples
 
-  #1 Many students measuring exactly 5 or 6 feet did not enter any inches. For example, 6' - our pattern requires that inches be included.
-  #2 Some students measuring exactly 5 or 6 feet entered just that number.
-  #3 Some of the inches were entered with decimal points. For example 5'7.5''. Our pattern only looks for two digits.
-  #4 Some entires have spaces at the end, for example 5 ' 9.
-  #5 Some entries are in meters and some of these use European decimals: 1.6, 1,7.
-  #6 Two students added cm.
-  #7 One student spelled out the numbers: Five foot eight inches.
+#1 Many students measuring exactly 5 or 6 feet did not enter any inches. For example, 6' - our pattern requires that inches be included.
+#2 Some students measuring exactly 5 or 6 feet entered just that number.
+#3 Some of the inches were entered with decimal points. For example 5'7.5''. Our pattern only looks for two digits.
+#4 Some entires have spaces at the end, for example 5 ' 9.
+#5 Some entries are in meters and some of these use European decimals: 1.6, 1,7.
+#6 Two students added cm.
+#7 One student spelled out the numbers: Five foot eight inches.
 
 
 
-  # Case 1
-  yes <- c("5","6", "5")
-  no <- c("5'", "5''", "5'4")
-  s <- c(yes, no)
+# Case 1
+yes <- c("5","6", "5")
+no <- c("5'", "5''", "5'4")
+s <- c(yes, no)
 
-  # Case 2
-  str_replace(s, "^([56])'?$", "\\1'0")
+# Case 2
+str_replace(s, "^([56])'?$", "\\1'0")
 
-  # case 2.2
-  str_replace(s, "^([56])'*$", "\\1'0")
+# case 2.2
+str_replace(s, "^([56])'*$", "\\1'0")
 
-  #Case 3
-  pattern <- "^[4-7]\\s*'\\s*(\\d+\\.?\\d*)$"
+#Case 3
+pattern <- "^[4-7]\\s*'\\s*(\\d+\\.?\\d*)$"
 
-  # case 5
-  yes <- c("1,7", "1, 8", "2, ")
-  no <- c("5,8", "5,3,2", "1.7")
-  s <-c(yes, no)
-  s
-  str_replace(s, "^([12])\\s*,\\s*(\\d*)$", "\\1\\.\\2")
+# case 5
+yes <- c("1,7", "1, 8", "2, ")
+no <- c("5,8", "5,3,2", "1.7")
+s <-c(yes, no)
+s
+str_replace(s, "^([12])\\s*,\\s*(\\d*)$", "\\1\\.\\2")
 
-  # Trimming <- remove spaces from start and end of strings
-  str_trim("5 ' 9 ")
+# Trimming <- remove spaces from start and end of strings
+str_trim("5 ' 9 ")
 
-  # str_to_lower <- Removes ower case letters
-  s <- c("Five feet eight inches")
-  str_to_lower(s)
+# str_to_lower <- Removes ower case letters
+s <- c("Five feet eight inches")
+str_to_lower(s)
 
 # Putting it into a function
-  convert_format <- function(s){
-    s %>%
-      str_replace("feet|foot|ft", "'") %>% #convert feet symbols to '
-      str_replace_all("inches|in|''|\"|cm|and", "") %>%  #remove inches and other symbols
-      str_replace("^([4-7])\\s*[,\\.\\s+]\\s*(\\d*)$", "\\1'\\2") %>% #change x.y, x,y x y
-      str_replace("^([56])'?$", "\\1'0") %>% #add 0 when to 5 or 6
-      str_replace("^([12])\\s*,\\s*(\\d*)$", "\\1\\.\\2") %>% #change european decimal
-      str_trim() #remove extra space
-  }
+convert_format <- function(s){
+  s %>%
+    str_replace("feet|foot|ft", "'") %>% #convert feet symbols to '
+    str_replace_all("inches|in|''|\"|cm|and", "") %>%  #remove inches and other symbols
+    str_replace("^([4-7])\\s*[,\\.\\s+]\\s*(\\d*)$", "\\1'\\2") %>% #change x.y, x,y x y
+    str_replace("^([56])'?$", "\\1'0") %>% #add 0 when to 5 or 6
+    str_replace("^([12])\\s*,\\s*(\\d*)$", "\\1\\.\\2") %>% #change european decimal
+    str_trim() #remove extra space
+}
 
-  words_to_numbers <- function(s){
-    str_to_lower(s) %>%
-      str_replace_all("zero", "0") %>%
-      str_replace_all("one", "1") %>%
-      str_replace_all("two", "2") %>%
-      str_replace_all("three", "3") %>%
-      str_replace_all("four", "4") %>%
-      str_replace_all("five", "5") %>%
-      str_replace_all("six", "6") %>%
-      str_replace_all("seven", "7") %>%
-      str_replace_all("eight", "8") %>%
-      str_replace_all("nine", "9") %>%
-      str_replace_all("ten", "10") %>%
-      str_replace_all("eleven", "11")
-  }
+words_to_numbers <- function(s){
+  str_to_lower(s) %>%
+    str_replace_all("zero", "0") %>%
+    str_replace_all("one", "1") %>%
+    str_replace_all("two", "2") %>%
+    str_replace_all("three", "3") %>%
+    str_replace_all("four", "4") %>%
+    str_replace_all("five", "5") %>%
+    str_replace_all("six", "6") %>%
+    str_replace_all("seven", "7") %>%
+    str_replace_all("eight", "8") %>%
+    str_replace_all("nine", "9") %>%
+    str_replace_all("ten", "10") %>%
+    str_replace_all("eleven", "11")
+}
 
-  # Now we can see which problematic entries remain:
-  converted <- problems %>% words_to_numbers %>% convert_format
-  remaining_problems <- converted[not_inches_or_cm(converted)]
-  pattern <- "^[4-7]\\s*'\\s*\\d+\\.?\\d*$"
-  index <- str_detect(remaining_problems, pattern)
-  remaining_problems[!index]
+# Now we can see which problematic entries remain:
+converted <- problems %>% words_to_numbers %>% convert_format
+remaining_problems <- converted[not_inches_or_cm(converted)]
+pattern <- "^[4-7]\\s*'\\s*\\d+\\.?\\d*$"
+index <- str_detect(remaining_problems, pattern)
+remaining_problems[!index]
 
 # Putting it All Together
-<<<<<<< HEAD
 pattern <- "^([4-7])\\s*'\\s*(\\d+\\.?\\d*)$"
+
 smallest <- 50
 tallest <- 84
-
-new_heights <-reported_heights %>%
-  mutate(
-    original = height,
-    height = words_to_numbers(height) %>% convert_format %>%
-    str_
-  )
-
-=======
-  pattern <- "^([4-7])\\s*'\\s*(\\d+\\.?\\d*)$"
-
-  smallest <- 50
-  tallest <- 84
-  new_heights <- reported_heights %>%
-    mutate(original = height,
-           height = words_to_numbers(height) %>% convert_format()) %>%
-    extract(height, c("feet", "inches"), regex = pattern, remove = FALSE) %>%
-    mutate_at(c("height", "feet", "inches"), as.numeric) %>%
-    mutate(guess = 12*feet + inches) %>%
-    mutate(height = case_when(
-      !is.na(height) & between(height, smallest, tallest) ~ height, #inches
-      !is.na(height) & between(height/2.54, smallest, tallest) ~ height/2.54, #centimeters
-      !is.na(height) & between(height*100/2.54, smallest, tallest) ~ height*100/2.54, #meters
-      !is.na(guess) & inches < 12 & between(guess, smallest, tallest) ~ guess, #feet'inches
-      TRUE ~ as.numeric(NA))) %>%
-    select(-guess)
-  new_heights
+new_heights <- reported_heights %>%
+  mutate(original = height,
+         height = words_to_numbers(height) %>% convert_format()) %>%
+  extract(height, c("feet", "inches"), regex = pattern, remove = FALSE) %>%
+  mutate_at(c("height", "feet", "inches"), as.numeric) %>%
+  mutate(guess = 12*feet + inches) %>%
+  mutate(height = case_when(
+    !is.na(height) & between(height, smallest, tallest) ~ height, #inches
+    !is.na(height) & between(height/2.54, smallest, tallest) ~ height/2.54, #centimeters
+    !is.na(height) & between(height*100/2.54, smallest, tallest) ~ height*100/2.54, #meters
+    !is.na(guess) & inches < 12 & between(guess, smallest, tallest) ~ guess, #feet'inches
+    TRUE ~ as.numeric(NA))) %>%
+  select(-guess)
+new_heights
 
 
 # Check all the entries we converted
-  new_heights %>%
-    filter(not_inches(original)) %>%
-    select(original, height) %>%
-    arrange(height) %>%
-    View
+new_heights %>%
+  filter(not_inches(original)) %>%
+  select(original, height) %>%
+  arrange(height) %>%
+  View
 
 # String Splitting
-  # read raw murders data line by line
-  filename <- system.file("extdata/murders.csv", package = "dslabs")
+# read raw murders data line by line
+filename <- system.file("extdata/murders.csv", package = "dslabs")
 lines <- readLines(filename)
 lines %>% head
 lines
@@ -982,7 +969,7 @@ polls <- tab[[5]] %>% html_table(fill = TRUE)
 polls
 head(polls)
 
-  #Question 5
+#Question 5
 
 #Update polls by changing the column names to c("dates", "remain", "leave", "undecided", "lead", "samplesize", "pollster", "poll_type", "notes")
 #and only keeping rows that have a percent sign (%) in the remain column.
@@ -992,7 +979,7 @@ names(polls) <- c("dates", "remain", "leave", "undecided", "lead", "samplesize",
 polls <- polls[str_detect(polls$remain, "%"), ]
 nrow(polls)
 
-  #Question 6
+#Question 6
 as.numeric(str_replace(polls$remain, "%", ""))/100
 
 parse_number(polls$remain)/100
@@ -1000,4 +987,68 @@ parse_number(polls$remain)/100
 # Question 8
 temp <- str_extract_all(polls$dates, "\\d{1,2}\\s[a-zA-Z]+")
 temp
->>>>>>> 1d45fac514f143430dd504ebf5748c199490c616
+
+
+# Dates and Times
+
+library(tidyverse)
+library(dslabs)
+data("polls_us_election_2016")
+polls_us_election_2016$startdate %>% head
+class(polls_us_election_2016$startdate)
+as.numeric(polls_us_election_2016$startdate) %>% head
+
+# ggplot is aware of dates
+polls_us_election_2016 %>% filter(pollster == "Ipsos" & state =="U.S.") %>%
+  ggplot(aes(startdate, rawpoll_trump)) +
+  geom_line()
+
+library(lubridate)
+
+# select some random dates from polls
+set.seed(2)
+dates <- sample(polls_us_election_2016$startdate, 10) %>% sort
+dates
+
+data.frame(date = dates,
+           month = month(dates),
+           day = day(dates),
+           year = year(dates))
+month(dates, label = TRUE)
+
+# ymd works on mixed date styles
+x <- c(20090101, "2009-01-02", "2009 01 03", "2009-1-4",
+       "2009-1, 5", "Created on 2009 1 6", "200901 !!! 07")
+ymd(x)
+
+# different parsers extract year, month and day in different orders
+x <- "09/01/02"
+ymd(x)
+mdy(x)
+ydm(x)
+myd(x)
+dmy(x)
+dym(x)
+
+now()    # current time in your time zone
+now("GMT")    # current time in GMT
+now() %>% hour()    # current hour
+now() %>% minute()    # current minute
+now() %>% second()    # current second
+
+# parse time
+x <- c("12:34:56")
+hms(x)
+
+#parse datetime
+x <- "Nov/2/2012 12:34:56"
+mdy_hms(x)
+
+
+#Text Mining
+library(tidyverse)
+library(ggplot2)
+library(lubridate)
+library(tidyr)
+library(scales)
+set.seed(1)
