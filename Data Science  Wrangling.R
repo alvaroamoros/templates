@@ -799,3 +799,16 @@ tab %>% extract(x, c("feet", "inches"), regex = "(\\d)'(\\d{1,2})")
   pattern <- "^[4-7]\\s*'\\s*\\d+\\.?\\d*$"
   index <- str_detect(remaining_problems, pattern)
   remaining_problems[!index]
+
+# Putting it All Together
+pattern <- "^([4-7])\\s*'\\s*(\\d+\\.?\\d*)$"
+smallest <- 50
+tallest <- 84
+
+new_heights <-reported_heights %>%
+  mutate(
+    original = height,
+    height = words_to_numbers(height) %>% convert_format %>%
+    str_
+  )
+
