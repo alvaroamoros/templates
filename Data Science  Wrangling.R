@@ -801,6 +801,7 @@ tab %>% extract(x, c("feet", "inches"), regex = "(\\d)'(\\d{1,2})")
   remaining_problems[!index]
 
 # Putting it All Together
+<<<<<<< HEAD
 pattern <- "^([4-7])\\s*'\\s*(\\d+\\.?\\d*)$"
 smallest <- 50
 tallest <- 84
@@ -812,3 +813,191 @@ new_heights <-reported_heights %>%
     str_
   )
 
+=======
+  pattern <- "^([4-7])\\s*'\\s*(\\d+\\.?\\d*)$"
+
+  smallest <- 50
+  tallest <- 84
+  new_heights <- reported_heights %>%
+    mutate(original = height,
+           height = words_to_numbers(height) %>% convert_format()) %>%
+    extract(height, c("feet", "inches"), regex = pattern, remove = FALSE) %>%
+    mutate_at(c("height", "feet", "inches"), as.numeric) %>%
+    mutate(guess = 12*feet + inches) %>%
+    mutate(height = case_when(
+      !is.na(height) & between(height, smallest, tallest) ~ height, #inches
+      !is.na(height) & between(height/2.54, smallest, tallest) ~ height/2.54, #centimeters
+      !is.na(height) & between(height*100/2.54, smallest, tallest) ~ height*100/2.54, #meters
+      !is.na(guess) & inches < 12 & between(guess, smallest, tallest) ~ guess, #feet'inches
+      TRUE ~ as.numeric(NA))) %>%
+    select(-guess)
+  new_heights
+
+
+# Check all the entries we converted
+  new_heights %>%
+    filter(not_inches(original)) %>%
+    select(original, height) %>%
+    arrange(height) %>%
+    View
+
+# String Splitting
+  # read raw murders data line by line
+  filename <- system.file("extdata/murders.csv", package = "dslabs")
+lines <- readLines(filename)
+lines %>% head
+lines
+
+# split at commas with str_split function, remove row of column names
+x <- str_split(lines, ",")
+x %>% head
+x
+
+# extract first element of each list entry
+library(purrr)
+map(x, function(y) y[1]) %>% head()
+map(x, 1) %>% head
+
+# Extract columns 1-5 as characters, then convert to proper format
+
+dat <- data.frame(parse_guess(map_chr(x, 1)),
+                  parse_guess(map_chr(x, 2)),
+                  parse_guess(map_chr(x, 3)),
+                  parse_guess(map_chr(x, 4)),
+                  parse_guess(map_chr(x, 5))) %>%
+  setNames(col_names)
+
+dat %>% head
+
+# more efficient code for the same thing
+dat <- x %>%
+  transpose() %>%
+  map( ~ parse_guess(unlist(.))) %>%
+  setNames(col_names) %>%
+  as.data.frame()
+
+# the simplify argument makes str_split return a matrix instead of a list
+x <- str_split(lines, ",", simplify = TRUE)
+col_names <- x[1,]
+x <- x[-1,]
+x %>% as_data_frame() %>%
+  setNames(col_names) %>%
+  mutate_all(parse_guess)
+
+# Case Study: Extracting a Table from a PDF
+library(dslabs)
+data("research_funding_rates")
+research_funding_rates
+
+# We start by downloading the PDF document then importing it into R using the following code:
+library("pdftools")
+temp_file <- tempfile()
+url <- "http://www.pnas.org/content/suppl/2015/09/16/1510159112.DCSupplemental/pnas.201510159SI.pdf"
+download.file(url, temp_file)
+txt <- pdf_text(temp_file)
+file.remove(temp_file)
+txt
+raw_data_research_funding_rates <- txt[2]
+raw_data_research_funding_rates
+
+raw_data_research_funding_rates %>% head
+
+#we see that it is a long string. Each line on the page, including the table rows, is separated by the symbol for newline: \n.
+#We can therefore can create a list with the lines of the text as elements:
+
+tab <- str_split(raw_data_research_funding_rates, "\n")
+tab
+
+tab <-tab[[1]]
+tab %>% head
+
+# we see that the information for the column names is the third and fourth entires:
+the_names_1 <- tab[3]
+the_names_2 <- tab[4]
+the_names_1
+the_names_2
+
+#In the table, the column information is spread across two lines. We want to create one vector with one name for each column.
+the_names_1
+the_names_1 <- the_names_1 %>%
+  str_trim() %>%
+  str_replace_all(",\\s.", "") %>%
+  str_split("\\s{2,}", simplify = TRUE)
+the_names_1
+
+the_names_2 <- the_names_2 %>%
+  str_trim() %>%
+  str_split("\\s+", simplify = TRUE)
+the_names_2
+
+# Now we can join these to generate one name for each column:
+tmp_names <- str_c(rep(the_names_1, each = 3), the_names_2[-1], sep = "_")
+tmp_names
+the_names <- c(the_names_2[1], tmp_names) %>%
+  str_to_lower() %>%
+  str_replace_all("\\s", "_")
+the_names
+
+#Now we are ready to get the actual data. By examining the tab object, we notice that the information is in lines 6 through 14.
+#We can use str_split() again to achieve our goal:
+new_research_funding_rates <- tab[6:14] %>%
+  str_trim %>%
+  str_split("\\s{2,}", simplify = TRUE) %>%
+  data.frame(stringsAsFactors = FALSE) %>%
+  setNames(the_names) %>%
+  mutate_at(-1, parse_number)
+new_research_funding_rates %>% head()
+
+# Recoding
+library(dslabs)
+data("gapminder")
+gapminder %>%
+  filter(region=="Caribbean") %>%
+  ggplot(aes(year, life_expectancy, color = country)) +
+  geom_line()
+
+# display long country names
+gapminder %>%
+  filter(region=="Caribbean") %>%
+  filter(str_length(country) >= 12) %>%
+  distinct(country)
+
+# recode long country names and remake plot
+gapminder %>% filter(region=="Caribbean") %>%
+  mutate(country = recode(country,
+                          'Antigua and Barbuda'="Barbuda",
+                          'Dominican Republic' = "DR",
+                          'St. Vincent and the Grenadines' = "St. Vincent",
+                          'Trinidad and Tobago' = "Trinidad")) %>%
+  ggplot(aes(year, life_expectancy, color = country)) +
+  geom_line()
+
+# Assessment Part 2: String Processing Part 3
+library(rvest)
+library(tidyverse)
+library(stringr)
+url <- "https://en.wikipedia.org/w/index.php?title=Opinion_polling_for_the_United_Kingdom_European_Union_membership_referendum&oldid=896735054"
+tab <- read_html(url) %>% html_nodes("table")
+polls <- tab[[5]] %>% html_table(fill = TRUE)
+polls
+head(polls)
+
+  #Question 5
+
+#Update polls by changing the column names to c("dates", "remain", "leave", "undecided", "lead", "samplesize", "pollster", "poll_type", "notes")
+#and only keeping rows that have a percent sign (%) in the remain column.
+
+#How many rows remain in the polls data frame?
+names(polls) <- c("dates", "remain", "leave", "undecided", "lead", "samplesize", "pollster", "poll_type", "notes")
+polls <- polls[str_detect(polls$remain, "%"), ]
+nrow(polls)
+
+  #Question 6
+as.numeric(str_replace(polls$remain, "%", ""))/100
+
+parse_number(polls$remain)/100
+
+# Question 8
+temp <- str_extract_all(polls$dates, "\\d{1,2}\\s[a-zA-Z]+")
+temp
+>>>>>>> 1d45fac514f143430dd504ebf5748c199490c616
