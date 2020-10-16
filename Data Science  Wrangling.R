@@ -120,52 +120,52 @@ dat - raw_data %% gather(key, value, -country)
 dat
 
 <<<<<<< HEAD
-  # Separate <- separates different elements of a name
-    # Arguments (apart from the data):
-      # 1. name of the column to be separated
-      # 2. names to be used in the new columns
-      # 3. the character that separates the variable
-
-      dat %>% separate(key, c("year", "variable_name"), "_")
-      # We optain to many values
-
-      dat %>% separate(key, c("year", "first_variable_name", "second_variable_name"),
-                       fill = "right")
-
-      # Argument extra, merges two variables if there is an extra separation
-      dat %>% separate(key, c("year", "variable_name"), sep = "_", extra = "merge")
-
-      dat %>% separate(key, c("year", "variable_name"), sep = "_", extra = "merge") %>%
-        spread(variable_name, value)
-
-      # We can obtain the same result using the unite function
-      dat %>%
-        separate(key, c("year", "first_variable_name", "second_variable_name"), fill = "right") %>%
-        unite(variable_name, first_variable_name, second_variable_name, sep="_")
-
-      dat %>%
-        separate(key, c("year", "first_variable_name", "second_variable_name"), fill = "right") %>%
-        unite(variable_name, first_variable_name, second_variable_name, sep="_") %>%
-        spread(variable_name, value) %>%
-        rename(fertility = fertility_NA)
-
-
-#Assessment Part 2: Reshaping Data
-=======
-# Separate - separates different elements of a name
-# Arguments (apart from the data)
+# Separate <- separates different elements of a name
+# Arguments (apart from the data):
 # 1. name of the column to be separated
 # 2. names to be used in the new columns
 # 3. the character that separates the variable
 
-dat %% separate(key, c(year, variable_name), _)
+dat %>% separate(key, c("year", "variable_name"), "_")
+# We optain to many values
+
+dat %>% separate(key, c("year", "first_variable_name", "second_variable_name"),
+                 fill = "right")
+
+# Argument extra, merges two variables if there is an extra separation
+dat %>% separate(key, c("year", "variable_name"), sep = "_", extra = "merge")
+
+dat %>% separate(key, c("year", "variable_name"), sep = "_", extra = "merge") %>%
+  spread(variable_name, value)
+
+# We can obtain the same result using the unite function
+dat %>%
+  separate(key, c("year", "first_variable_name", "second_variable_name"), fill = "right") %>%
+  unite(variable_name, first_variable_name, second_variable_name, sep="_")
+
+dat %>%
+  separate(key, c("year", "first_variable_name", "second_variable_name"), fill = "right") %>%
+  unite(variable_name, first_variable_name, second_variable_name, sep="_") %>%
+  spread(variable_name, value) %>%
+  rename(fertility = fertility_NA)
+
+
+#Assessment Part 2: Reshaping Data
+
+  # Separate - separates different elements of a name
+  # Arguments (apart from the data)
+  # 1. name of the column to be separated
+  # 2. names to be used in the new columns
+  # 3. the character that separates the variable
+
+  dat %% separate(key, c(year, variable_name), )
 # We optain to many values
 
 dat %% separate(key, c(year, first_variable_name, second_variable_name),
                 fill = right)
 
 # Argument extra, merges two variables if there is an extra separation
-dat %% separate(key, c(year, variable_name), sep = _, extra = merge)
+dat %% separate(key, c(year, variable_name), sep = , extra = merge)
 
 dat %% separate(key, c(year, variable_name), sep = _, extra = merge) %%
   spread(variable_name, value)
@@ -203,8 +203,8 @@ head(co2_tidy)
 # Questio 11 - Use co2_tidy to plot CO2 versus month with a different curve for each year:
 co2_tidy %>% ggplot(aes(as.numeric(month), co2, color = year)) + geom_line()
 =======
-#Question 10 - Run the following command to define the co2_wide object
-co2_wide - data.frame(matrix(co2, ncol = 12, byrow = TRUE)) %%
+  #Question 10 - Run the following command to define the co2_wide object
+  co2_wide - data.frame(matrix(co2, ncol = 12, byrow = TRUE)) %%
   setNames(112) %%
   mutate(year = as.character(19591997))
 co2_wide
@@ -229,14 +229,14 @@ dat_tidy
 # Question 13 Now use the admissions dataset to create the object tmp, which has columns major, gender, key and value:
 tmp <- gather(admissions, key, value, admitted:applicants)
 tmp
- # Combine the key and gender and create a new column called column_name to get a variable with the following values: admitted_men, admitted_women, applicants_men and applicants_women. Save the new data as tmp2.
+# Combine the key and gender and create a new column called column_name to get a variable with the following values: admitted_men, admitted_women, applicants_men and applicants_women. Save the new data as tmp2.
 tmp2 <- unite(tmp, column_name, c(key,gender))
 tmp2
 
 # Question 14 - Which function can reshape tmp2 to a table with six rows and five columns named major, admitted_men, admitted_women, applicants_men and applicants_women?
 spread(tmp2, column_name, value)
 =======
-dat - admissions %% select(-applicants)
+  dat - admissions %% select(-applicants)
 
 dat_tidy - spread(dat, gender, admitted)
 dat_tidy
@@ -252,14 +252,14 @@ tmp2
 spread(tmp2, column_name, value)
 
 
-    # Combining Tables
+# Combining Tables
 
-      # left_join() only keeps rows that have information in the first table.
-      # right_join() only keeps rows that have information in the second table.
-      # inner_join() only keeps rows that have information in both tables.
-      # full_join() keeps all rows from both tables.
-      # semi_join() keeps the part of first table for which we have information in the second.
-      # anti_join() keeps the elements of the first table for which there is no information in the second
+# left_join() only keeps rows that have information in the first table.
+# right_join() only keeps rows that have information in the second table.
+# inner_join() only keeps rows that have information in both tables.
+# full_join() keeps all rows from both tables.
+# semi_join() keeps the part of first table for which we have information in the second.
+# anti_join() keeps the elements of the first table for which there is no information in the second
 
 # import US murders data
 library(tidyverse)
@@ -345,7 +345,7 @@ setequal(c("a", "b", "c"),c("a","d","s"))
 setequal(tab1, tab2)
 
 
-    # Assessment: Combining Tables
+# Assessment: Combining Tables
 tab1 <- slice(murders, 1:6) %>% select(state, population)
 tab2 <- slice(results_us_election_2016, c(1:3,  7:8)) %>% select(state, electoral_votes)
 tab1
@@ -398,7 +398,7 @@ top <- top %>% select(playerID)
 setdiff(awards_2016, top)
 
 
-    # Web Scraping
+# Web Scraping
 library(rvest)
 url <- "https://en.wikipedia.org/wiki/Murder_in_the_United_States_by_state"
 h <- read_html(url)
@@ -446,7 +446,7 @@ html_text(nodes[[8]])
 
 html_table(nodes[[8]])
 
-  # Section 3: String Processing
+# Section 3: String Processing
 url <- "https://en.wikipedia.org/w/index.php?title=Gun_violence_in_the_United_States_by_state&direction=prev&oldid=810166167"
 murders_raw <- read_html(url) %>%
   html_nodes("table") %>%
@@ -728,109 +728,109 @@ tab %>% extract(x, c("feet", "inches"), regex = "(\\d)'(\\d{1,2})")
 
 #Using Groups and Quantifiers. Examples
 
-  #1 Many students measuring exactly 5 or 6 feet did not enter any inches. For example, 6' - our pattern requires that inches be included.
-  #2 Some students measuring exactly 5 or 6 feet entered just that number.
-  #3 Some of the inches were entered with decimal points. For example 5'7.5''. Our pattern only looks for two digits.
-  #4 Some entires have spaces at the end, for example 5 ' 9.
-  #5 Some entries are in meters and some of these use European decimals: 1.6, 1,7.
-  #6 Two students added cm.
-  #7 One student spelled out the numbers: Five foot eight inches.
+#1 Many students measuring exactly 5 or 6 feet did not enter any inches. For example, 6' - our pattern requires that inches be included.
+#2 Some students measuring exactly 5 or 6 feet entered just that number.
+#3 Some of the inches were entered with decimal points. For example 5'7.5''. Our pattern only looks for two digits.
+#4 Some entires have spaces at the end, for example 5 ' 9.
+#5 Some entries are in meters and some of these use European decimals: 1.6, 1,7.
+#6 Two students added cm.
+#7 One student spelled out the numbers: Five foot eight inches.
 
 
 
-  # Case 1
-  yes <- c("5","6", "5")
-  no <- c("5'", "5''", "5'4")
-  s <- c(yes, no)
+# Case 1
+yes <- c("5","6", "5")
+no <- c("5'", "5''", "5'4")
+s <- c(yes, no)
 
-  # Case 2
-  str_replace(s, "^([56])'?$", "\\1'0")
+# Case 2
+str_replace(s, "^([56])'?$", "\\1'0")
 
-  # case 2.2
-  str_replace(s, "^([56])'*$", "\\1'0")
+# case 2.2
+str_replace(s, "^([56])'*$", "\\1'0")
 
-  #Case 3
-  pattern <- "^[4-7]\\s*'\\s*(\\d+\\.?\\d*)$"
+#Case 3
+pattern <- "^[4-7]\\s*'\\s*(\\d+\\.?\\d*)$"
 
-  # case 5
-  yes <- c("1,7", "1, 8", "2, ")
-  no <- c("5,8", "5,3,2", "1.7")
-  s <-c(yes, no)
-  s
-  str_replace(s, "^([12])\\s*,\\s*(\\d*)$", "\\1\\.\\2")
+# case 5
+yes <- c("1,7", "1, 8", "2, ")
+no <- c("5,8", "5,3,2", "1.7")
+s <-c(yes, no)
+s
+str_replace(s, "^([12])\\s*,\\s*(\\d*)$", "\\1\\.\\2")
 
-  # Trimming <- remove spaces from start and end of strings
-  str_trim("5 ' 9 ")
+# Trimming <- remove spaces from start and end of strings
+str_trim("5 ' 9 ")
 
-  # str_to_lower <- Removes ower case letters
-  s <- c("Five feet eight inches")
-  str_to_lower(s)
+# str_to_lower <- Removes ower case letters
+s <- c("Five feet eight inches")
+str_to_lower(s)
 
 # Putting it into a function
-  convert_format <- function(s){
-    s %>%
-      str_replace("feet|foot|ft", "'") %>% #convert feet symbols to '
-      str_replace_all("inches|in|''|\"|cm|and", "") %>%  #remove inches and other symbols
-      str_replace("^([4-7])\\s*[,\\.\\s+]\\s*(\\d*)$", "\\1'\\2") %>% #change x.y, x,y x y
-      str_replace("^([56])'?$", "\\1'0") %>% #add 0 when to 5 or 6
-      str_replace("^([12])\\s*,\\s*(\\d*)$", "\\1\\.\\2") %>% #change european decimal
-      str_trim() #remove extra space
-  }
+convert_format <- function(s){
+  s %>%
+    str_replace("feet|foot|ft", "'") %>% #convert feet symbols to '
+    str_replace_all("inches|in|''|\"|cm|and", "") %>%  #remove inches and other symbols
+    str_replace("^([4-7])\\s*[,\\.\\s+]\\s*(\\d*)$", "\\1'\\2") %>% #change x.y, x,y x y
+    str_replace("^([56])'?$", "\\1'0") %>% #add 0 when to 5 or 6
+    str_replace("^([12])\\s*,\\s*(\\d*)$", "\\1\\.\\2") %>% #change european decimal
+    str_trim() #remove extra space
+}
 
-  words_to_numbers <- function(s){
-    str_to_lower(s) %>%
-      str_replace_all("zero", "0") %>%
-      str_replace_all("one", "1") %>%
-      str_replace_all("two", "2") %>%
-      str_replace_all("three", "3") %>%
-      str_replace_all("four", "4") %>%
-      str_replace_all("five", "5") %>%
-      str_replace_all("six", "6") %>%
-      str_replace_all("seven", "7") %>%
-      str_replace_all("eight", "8") %>%
-      str_replace_all("nine", "9") %>%
-      str_replace_all("ten", "10") %>%
-      str_replace_all("eleven", "11")
-  }
+words_to_numbers <- function(s){
+  str_to_lower(s) %>%
+    str_replace_all("zero", "0") %>%
+    str_replace_all("one", "1") %>%
+    str_replace_all("two", "2") %>%
+    str_replace_all("three", "3") %>%
+    str_replace_all("four", "4") %>%
+    str_replace_all("five", "5") %>%
+    str_replace_all("six", "6") %>%
+    str_replace_all("seven", "7") %>%
+    str_replace_all("eight", "8") %>%
+    str_replace_all("nine", "9") %>%
+    str_replace_all("ten", "10") %>%
+    str_replace_all("eleven", "11")
+}
 
-  # Now we can see which problematic entries remain:
-  converted <- problems %>% words_to_numbers %>% convert_format
-  remaining_problems <- converted[not_inches_or_cm(converted)]
-  pattern <- "^[4-7]\\s*'\\s*\\d+\\.?\\d*$"
-  index <- str_detect(remaining_problems, pattern)
-  remaining_problems[!index]
+# Now we can see which problematic entries remain:
+converted <- problems %>% words_to_numbers %>% convert_format
+remaining_problems <- converted[not_inches_or_cm(converted)]
+pattern <- "^[4-7]\\s*'\\s*\\d+\\.?\\d*$"
+index <- str_detect(remaining_problems, pattern)
+remaining_problems[!index]
 
 # Putting it All Together
-  pattern <- "^([4-7])\\s*'\\s*(\\d+\\.?\\d*)$"
+pattern <- "^([4-7])\\s*'\\s*(\\d+\\.?\\d*)$"
 
-  smallest <- 50
-  tallest <- 84
-  new_heights <- reported_heights %>%
-    mutate(original = height,
-           height = words_to_numbers(height) %>% convert_format()) %>%
-    extract(height, c("feet", "inches"), regex = pattern, remove = FALSE) %>%
-    mutate_at(c("height", "feet", "inches"), as.numeric) %>%
-    mutate(guess = 12*feet + inches) %>%
-    mutate(height = case_when(
-      !is.na(height) & between(height, smallest, tallest) ~ height, #inches
-      !is.na(height) & between(height/2.54, smallest, tallest) ~ height/2.54, #centimeters
-      !is.na(height) & between(height*100/2.54, smallest, tallest) ~ height*100/2.54, #meters
-      !is.na(guess) & inches < 12 & between(guess, smallest, tallest) ~ guess, #feet'inches
-      TRUE ~ as.numeric(NA))) %>%
-    select(-guess)
-  new_heights
+smallest <- 50
+tallest <- 84
+new_heights <- reported_heights %>%
+  mutate(original = height,
+         height = words_to_numbers(height) %>% convert_format()) %>%
+  extract(height, c("feet", "inches"), regex = pattern, remove = FALSE) %>%
+  mutate_at(c("height", "feet", "inches"), as.numeric) %>%
+  mutate(guess = 12*feet + inches) %>%
+  mutate(height = case_when(
+    !is.na(height) & between(height, smallest, tallest) ~ height, #inches
+    !is.na(height) & between(height/2.54, smallest, tallest) ~ height/2.54, #centimeters
+    !is.na(height) & between(height*100/2.54, smallest, tallest) ~ height*100/2.54, #meters
+    !is.na(guess) & inches < 12 & between(guess, smallest, tallest) ~ guess, #feet'inches
+    TRUE ~ as.numeric(NA))) %>%
+  select(-guess)
+new_heights
 
 
 # Check all the entries we converted
-  new_heights %>%
-    filter(not_inches(original)) %>%
-    select(original, height) %>%
-    arrange(height) %>%
-    View
+new_heights %>%
+  filter(not_inches(original)) %>%
+  select(original, height) %>%
+  arrange(height) %>%
+  View
 
 # String Splitting
-  # read raw murders data line by line
-  filename <- system.file("extdata/murders.csv", package = "dslabs")
+# read raw murders data line by line
+filename <- system.file("extdata/murders.csv", package = "dslabs")
 lines <- readLines(filename)
 lines %>% head
 lines
@@ -969,7 +969,7 @@ polls <- tab[[5]] %>% html_table(fill = TRUE)
 polls
 head(polls)
 
-  #Question 5
+#Question 5
 
 #Update polls by changing the column names to c("dates", "remain", "leave", "undecided", "lead", "samplesize", "pollster", "poll_type", "notes")
 #and only keeping rows that have a percent sign (%) in the remain column.
@@ -979,7 +979,7 @@ names(polls) <- c("dates", "remain", "leave", "undecided", "lead", "samplesize",
 polls <- polls[str_detect(polls$remain, "%"), ]
 nrow(polls)
 
-  #Question 6
+#Question 6
 as.numeric(str_replace(polls$remain, "%", ""))/100
 
 parse_number(polls$remain)/100
@@ -987,3 +987,382 @@ parse_number(polls$remain)/100
 # Question 8
 temp <- str_extract_all(polls$dates, "\\d{1,2}\\s[a-zA-Z]+")
 temp
+
+
+# Dates and Times
+
+library(tidyverse)
+library(dslabs)
+data("polls_us_election_2016")
+polls_us_election_2016$startdate %>% head
+class(polls_us_election_2016$startdate)
+as.numeric(polls_us_election_2016$startdate) %>% head
+
+# ggplot is aware of dates
+polls_us_election_2016 %>% filter(pollster == "Ipsos" & state =="U.S.") %>%
+  ggplot(aes(startdate, rawpoll_trump)) +
+  geom_line()
+
+library(lubridate)
+
+# select some random dates from polls
+set.seed(2)
+dates <- sample(polls_us_election_2016$startdate, 10) %>% sort
+dates
+
+data.frame(date = dates,
+           month = month(dates),
+           day = day(dates),
+           year = year(dates))
+month(dates, label = TRUE)
+
+# ymd works on mixed date styles
+x <- c(20090101, "2009-01-02", "2009 01 03", "2009-1-4",
+       "2009-1, 5", "Created on 2009 1 6", "200901 !!! 07")
+ymd(x)
+
+# different parsers extract year, month and day in different orders
+x <- "09/01/02"
+ymd(x)
+mdy(x)
+ydm(x)
+myd(x)
+dmy(x)
+dym(x)
+
+now()    # current time in your time zone
+now("GMT")    # current time in GMT
+now() %>% hour()    # current hour
+now() %>% minute()    # current minute
+now() %>% second()    # current second
+
+# parse time
+x <- c("12:34:56")
+hms(x)
+
+#parse datetime
+x <- "Nov/2/2012 12:34:56"
+mdy_hms(x)
+
+
+#Text Mining
+library(tidyverse)
+library(ggplot2)
+library(lubridate)
+library(tidyr)
+library(scales)
+set.seed(1)
+
+
+  #Case study: Trump tweets
+
+url <- 'http://www.trumptwitterarchive.com/data/realdonaldtrump/%s.json'
+trump_tweets <- map(2009:2017, ~sprintf(url, .x)) %>%
+  map_df(jsonlite::fromJSON, simplifyDataFrame = TRUE) %>%
+  filter(!is_retweet & !str_detect(text, '^"')) %>%
+  mutate(created_at = parse_date_time(created_at,
+                                      orders = "a b! d! H!:M!:S! z!* Y!",
+                                      tz="EST"))
+library(dslabs)
+data("trump_tweets")
+head(trump_tweets)
+names(trump_tweets)
+?trump_tweets
+
+trump_tweets$text[16413] %>% str_wrap(width = options()$width) %>% cat
+
+trump_tweets %>% count(source) %>% arrange(desc(n)) %>% head()
+
+#We can use extract to remove the Twitter for part of the source and filter out retweets.
+trump_tweets %>%
+  extract(source, "source", "Twitter for (.*)") %>%
+  count(source)
+
+#We are interested in what happened during the campaign
+campaign_tweets <- trump_tweets %>%
+  extract(source, "source", "Twitter for (.*)") %>%
+  filter(source %in% c("Android", "iPhone") &
+           created_at >= ymd("2015-06-17") &
+           created_at < ymd("2016-11-08")) %>%
+  filter(!is_retweet) %>%
+  arrange(created_at)
+
+# Data visualization to see the our of the day that tweets hapend
+ds_theme_set()
+campaign_tweets %>%
+  mutate(hour = hour(with_tz(created_at, "EST"))) %>%
+  count(source, hour) %>%
+  group_by(source) %>%
+  mutate(percent = n / sum(n)) %>%
+  ungroup %>%
+  ggplot(aes(hour, percent, color = source)) +
+  geom_line() +
+  geom_point() +
+  scale_y_continuous() +
+  labs(x = "Hour of day (EST)",
+       y = "% of tweets",
+       color = "")
+
+# Text as data
+
+# The tidytext package helps us convert free from text into a tidy table. Having the data in this format greatly facilitates data visualization and applying statistical techniques.
+library(tidytext)
+
+example <- data_frame(line = c(1, 2, 3, 4),
+                      text = c("Roses are red,", "Violets are blue,", "Sugar is sweet,", "And so are you."))
+example
+example %>% unnest_tokens(word, text)
+
+# Now let's look at a quick example with a tweet number 3008:
+i <- 3008
+campaign_tweets$text[i]
+campaign_tweets[i,] %>%
+  unnest_tokens(word, text) %>%
+  select(word)
+
+# Instead of using the default token, words, we define a regex that captures twitter character.
+pattern <- "([^A-Za-z\\d#@']|'(?![A-Za-z\\d#@]))"
+  #We can now use the unnest_tokens() function with the regex option and appropriately extract the hashtags and mentions:
+  campaign_tweets[i,] %>%
+    unnest_tokens(word, text, token = "regex", pattern = pattern) %>%
+    select(word)
+
+    # Another minor adjustment we want to make is remove the links to pictures:
+  campaign_tweets[i,] %>%
+    mutate(text = str_replace_all(text, "https://t.co/[A-Za-z\\d]+|&amp;", ""))  %>%
+    unnest_tokens(word, text, token = "regex", pattern = pattern) %>%
+    select(word)
+
+  tweet_words <- campaign_tweets %>%
+    mutate(text = str_replace_all(text, "https://t.co/[A-Za-z\\d]+|&amp;", ""))  %>%
+    unnest_tokens(word, text, token = "regex", pattern = pattern)
+tweet_words
+
+# And we can now answer questions such as "what are the most commonly used words?"
+tweet_words %>%
+  count(word) %>%
+  arrange(desc(n))
+
+# The top words are not informative. The tidytext package has database of these commonly used words, referred to as stop words, in text mining:
+  # stop_words
+tweet_words <- campaign_tweets %>%
+  mutate(text = str_replace_all(text, "https://t.co/[A-Za-z\\d]+|&amp;", ""))  %>%
+  unnest_tokens(word, text, token = "regex", pattern = pattern)  %>%
+  filter(!word %in% stop_words$word)
+
+tweet_words %>%
+  count(word) %>%
+  arrange(desc(n)) %>%
+  head(10)
+
+# Remove numbers and the quote '. We want to remove the '
+tweet_words <- campaign_tweets %>%
+  mutate(text = str_replace_all(text, "https://t.co/[A-Za-z\\d]+|&amp;", "")) %>%
+  unnest_tokens(word, text, token = "regex", pattern = pattern) %>%
+  filter(!word %in% stop_words$word &
+           !str_detect(word, "^\\d+$")) %>%
+  mutate(str_replace(word, "^'",""))
+
+tweet_words
+
+#Now that we have all our words in a table, along with information about what device was used to compose the tweet they came from
+# WE use odds ratio to do so
+
+android_iphone_or <- tweet_words %>%
+  count(word, source) %>%
+  spread(source, n, fill = 0) %>%
+  mutate( or = (Android + 0.5 / (sum(Android) - Android + 0.5)/
+                  ((iPhone + 0.5) / sum(iPhone) - iPhone + 0.5)))
+android_iphone_or %>% arrange(desc(or))
+
+android_iphone_or <- tweet_words %>%
+  count(word, source) %>%
+  spread(source, n, fill = 0) %>%
+  mutate(or = (Android + 0.5) / (sum(Android) - Android + 0.5) /
+           ( (iPhone + 0.5) / (sum(iPhone) - iPhone + 0.5)))
+
+android_iphone_or %>% arrange(desc(or))
+android_iphone_or %>% arrange(or)
+
+# Given that several of these words are overall low frequency words we can impose a filter based on the total frequency like this:
+android_iphone_or %>% filter(Android + iPhone > 100) %>%
+  arrange(desc(or))
+android_iphone_or %>% filter(Android + iPhone > 100) %>%
+  arrange(or)
+
+#Sentiment Analysis
+
+view(sentiments)
+
+get_sentiments("bing")
+get_sentiments("afinn")
+get_sentiments("loughran") %>% count(sentiment)
+get_sentiments("nrc") %>% count(sentiment)
+
+nrc <- get_sentiments("nrc") %>%
+  select(word, sentiment)
+
+tweet_words %>% inner_join(nrc, by = "word") %>%
+  select(source, word, sentiment) %>% sample_n(10)
+
+sentiment_counts <- tweet_words %>%
+  inner_join(nrc, by = "word") %>%
+  count(source, sentiment) %>%
+  spread(source, n) %>%
+  mutate( sentiment = replace_na(sentiment, replace = "none"))
+sentiment_counts
+
+tweet_words %>% group_by(source) %>% summarise(n = n())
+
+sentiment_counts %>%
+  mutate(Android = Android / (sum(Android) - Android) ,
+         iPhone = iPhone / (sum(iPhone) - iPhone),
+         or = Android/iPhone) %>%
+  arrange(desc(or))
+
+# odds ratio and conficende interval
+
+library(broom)
+log_or <- sentiment_counts %>%
+  mutate( log_or = log( (Android / (sum(Android) - Android)) / (iPhone / (sum(iPhone) - iPhone))),
+          se = sqrt( 1/Android + 1/(sum(Android) - Android) + 1/iPhone + 1/(sum(iPhone) - iPhone)),
+          conf.low = log_or - qnorm(0.975)*se,
+          conf.high = log_or + qnorm(0.975)*se) %>%
+  arrange(desc(log_or))
+log_or
+
+# Graphical representation
+log_or %>%
+  mutate(sentiment = reorder(sentiment, log_or),) %>%
+  ggplot(aes(x = sentiment, ymin = conf.low, ymax = conf.high)) +
+  geom_errorbar() +
+  geom_point(aes(sentiment, log_or)) +
+  ylab("Log odds ratio for association between Android and sentiment") +
+  coord_flip()
+
+
+android_iphone_or %>% inner_join(nrc) %>%
+  filter(sentiment == "disgust" & Android + iPhone > 10) %>%
+  arrange(desc(or))
+
+android_iphone_or %>% inner_join(nrc, by = "word") %>%
+  mutate(sentiment = factor(sentiment, levels = log_or$sentiment)) %>%
+  mutate(log_or = log(or)) %>%
+  filter(Android + iPhone > 10 & abs(log_or)>1) %>%
+  mutate(word = reorder(word, log_or)) %>%
+  ggplot(aes(word, log_or, fill = log_or < 0)) +
+  facet_wrap(~sentiment, scales = "free_x", nrow = 2) +
+  geom_bar(stat="identity", show.legend = FALSE) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+
+# Assessment Part 1: Dates, Times, and Text Mining
+library(dslabs)
+library(lubridate)
+options(digits = 3)
+
+data("brexit_polls")
+
+# Question 1
+  #How many polls had a start date (startdate) in April (month number 4)?
+brexit_polls %>% mutate(month = month(startdate)) %>% filter(month == 4)
+
+
+#Use the round_date() function on the enddate column with the argument unit="week". How many polls ended the week of 2016-06-12?
+brexit_polls %>% mutate(month_end = month(enddate),
+                        day_end = day(enddate))
+
+brexit_polls$enddate
+
+round_brexit_polls <- round_date(brexit_polls$enddate, unit = "week")
+round_brexit_polls <- data.frame(enddate = round_brexit_polls) %>%
+  mutate(month = month(enddate),
+         day = day(enddate))
+round_brexit_polls %>% filter(month == 6,
+                              day == 12)
+
+week_days <- weekdays(brexit_polls$enddate)
+week_days <- data.frame(day = week_days)
+table(week_days$day)
+
+# Question 5
+data(movielens)
+
+#Convert the timestamp column to dates using the lubridate as_datetime() function.
+
+  # Which year had the most movie reviews?
+  head(movielens)
+
+  movielens <- movielens %>%
+    mutate(date = as_datetime(timestamp)) %>%
+    mutate(review_year = year(date),
+           review_hour = hour(date))
+
+  data.frame(table(movielens$review_year)) %>%
+    arrange(desc(Freq))
+
+  # Which hour of the day had the most movie reviews?
+  data.frame(table(movielens$review_hour)) %>%
+    arrange(desc(Freq))
+
+# Assessment Part 2: Dates, Times, and Text Mining
+library(tidyverse)
+library(gutenbergr)
+library(tidytext)
+options(digits = 3)
+
+# Question 6
+#Use str_detect() to find the ID of the novel Pride and Prejudice.
+#How many different ID numbers are returned?
+gutenberg_metadata %>%
+  filter(str_detect(title, "Pride and Prejudice"))
+
+# Question 7
+# Notice that there are several versions of the book. The gutenberg_works() function filters this table to remove replicates and include only English language works.
+#Use this function to find the ID for Pride and Prejudice.
+# What is the correct ID number?
+gutenberg_works() %>%
+  filter(str_detect(title, "Pride and Prejudice"))
+
+# Question 8
+# Use the gutenberg_download() function to download the text for Pride and Prejudice.
+# Use the tidytext package to create a tidy table with all the words in the text. Save this object as words.
+#How many words are present in the book?
+
+p_and_p <- gutenberg_download(1342)
+
+words <- unnest_tokens(p_and_p, word, text, token = "words", to_lower = TRUE)
+nrow(words)
+
+#Question 9
+# Remove the stop Word
+#How many words remain?
+data("stop_words")
+
+words <- words %>% anti_join(stop_words)
+nrow(words)
+
+# Question 10
+# After removing stop words, detect and then filter out any token that contains a digit from words.
+words <- words %>%
+  filter(!str_detect(word, "\\d+"))
+nrow(words)
+
+# Question 11
+  # How many words appear more than 100 times in the book?
+words <- words %>%
+  count(word)
+
+words %>% filter(n > 100) %>% nrow()
+words %>% filter(n > 250)
+
+
+# Question 12
+afinn <- get_sentiments("afinn")
+afinn
+
+# Use this afinn lexicon to assign sentiment values to words. Keep only words that are present in both words and the afinn lexicon.
+# Save this data frame as afinn_sentiments.
+afinn_sentiments <- anti_join(words, afinn)
+afinn_sentiments
+anti_join(words, afinn)
