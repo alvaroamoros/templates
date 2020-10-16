@@ -1350,12 +1350,10 @@ nrow(words)
 
 # Question 11
   # How many words appear more than 100 times in the book?
-words <- words %>%
-  count(word)
-
-words %>% filter(n > 100) %>% nrow()
-words %>% filter(n > 250)
-
+words %>%
+  count(word) %>%
+  top_n(1, n) %>%
+  pull(n)
 
 # Question 12
 afinn <- get_sentiments("afinn")
@@ -1363,6 +1361,67 @@ afinn
 
 # Use this afinn lexicon to assign sentiment values to words. Keep only words that are present in both words and the afinn lexicon.
 # Save this data frame as afinn_sentiments.
-afinn_sentiments <- anti_join(words, afinn)
-afinn_sentiments
-anti_join(words, afinn)
+
+afinn_sentiments <- inner_join(words, afinn)
+  #How many elements of words have sentiments in the afinn lexicon?
+   nrow(afinn_sentiments)
+  #What proportion of words in afinn_sentiments have a positive value?
+  afinn_sentiments %>%
+    filter(value >= 0) %>%
+    nrow() / 6065
+  #How many elements of afinn_sentiments have a value of 4?
+  afinn_sentiments %>%
+    filter(value == 4) %>%
+    nrow()
+
+
+
+#Puerto Rico Hurricane Mortality: Part 1
+rm(list = ls())
+
+library(tidyverse)
+library(pdftools)
+library(stringr)
+options(digits = 3)
+
+# Question 1
+
+  #Extract document from dslabs directory
+fn <- system.file("extdata", "RD-Mortality-Report_2015-18-180531.pdf", package="dslabs")
+
+  # Open document
+system("cmd.exe", input = paste("start", fn))
+
+# Question 2- The variables in this dataset will be year, month, day and deaths.
+# Use the pdftools package to read in fn using the pdf_text() function. Store the results in an object called txt.
+txt <- pdf_text(fn)
+txt
+
+# Question 3
+#Extract the ninth page of the PDF file from the object txt, then use the str_split() function from the stringr package so that you have each line in a different entry.
+#The new line character is \n. Call this string vector x.
+
+x <- txt[9] %>%
+  str_split("\n")
+
+class(x)
+length(x)
+# Question 4
+# Define s to be the first entry of the x object.
+s <- x[[1]]
+class(s)
+length(s)
+s
+
+# Question 5
+# We learned about the command str_trim() that removes spaces at the start or end of the strings.
+# Use this function to trim s and assign the result to s again.
+s <- str_trim(s)
+s[1]
+
+# Question 6 Use the str_which() function to find the row with the header.
+# Save this result to header_index. Hint: find the first string that matches the pattern "2015" using the str_which() function.
+
+header_index <- str_which(s, "2015")[1]
+header_index
+s[2]
