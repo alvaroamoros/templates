@@ -192,7 +192,7 @@ head(co2)
 <<<<<<< HEAD
 #Question 10 - Run the following command to define the co2_wide object:
 co2_wide <- data.frame(matrix(co2, ncol = 12, byrow = TRUE)) %>%
-  setNames(1:12) %>%
+  (1:12) %>%
   mutate(year = as.character(1959:1997))
 co2_wide
 head(co2_wide)
@@ -205,7 +205,7 @@ co2_tidy %>% ggplot(aes(as.numeric(month), co2, color = year)) + geom_line()
 =======
   #Question 10 - Run the following command to define the co2_wide object
   co2_wide - data.frame(matrix(co2, ncol = 12, byrow = TRUE)) %%
-  setNames(112) %%
+  (112) %%
   mutate(year = as.character(19591997))
 co2_wide
 head(co2_wide)
@@ -412,7 +412,7 @@ tab <- tab %>% html_table
 class(tab)
 tab
 
-tab <- tab %>% setNames(c("state", "population", "total", "murders", "gun_murders", "gun_ownership", "total_rate", "murder_rate", "gun_murder_rate"))
+tab <- tab %>% (c("state", "population", "total", "murders", "gun_murders", "gun_ownership", "total_rate", "murder_rate", "gun_murder_rate"))
 head(tab)
 
 # CSS Selectors
@@ -452,7 +452,7 @@ murders_raw <- read_html(url) %>%
   html_nodes("table") %>%
   html_table() %>%
   .[[1]] %>%
-  setNames(c("state", "population", "total", "murder_rate"))
+  (c("state", "population", "total", "murder_rate"))
 murders_raw
 
 class(murders_raw$population)
@@ -852,7 +852,7 @@ dat <- data.frame(parse_guess(map_chr(x, 1)),
                   parse_guess(map_chr(x, 3)),
                   parse_guess(map_chr(x, 4)),
                   parse_guess(map_chr(x, 5))) %>%
-  setNames(col_names)
+  (col_names)
 
 dat %>% head
 
@@ -860,7 +860,7 @@ dat %>% head
 dat <- x %>%
   transpose() %>%
   map( ~ parse_guess(unlist(.))) %>%
-  setNames(col_names) %>%
+  (col_names) %>%
   as.data.frame()
 
 # the simplify argument makes str_split return a matrix instead of a list
@@ -868,7 +868,7 @@ x <- str_split(lines, ",", simplify = TRUE)
 col_names <- x[1,]
 x <- x[-1,]
 x %>% as_data_frame() %>%
-  setNames(col_names) %>%
+  (col_names) %>%
   mutate_all(parse_guess)
 
 # Case Study: Extracting a Table from a PDF
@@ -931,7 +931,7 @@ new_research_funding_rates <- tab[6:14] %>%
   str_trim %>%
   str_split("\\s{2,}", simplify = TRUE) %>%
   data.frame(stringsAsFactors = FALSE) %>%
-  setNames(the_names) %>%
+  (the_names) %>%
   mutate_at(-1, parse_number)
 new_research_funding_rates %>% head()
 
@@ -1390,7 +1390,7 @@ options(digits = 3)
 fn <- system.file("extdata", "RD-Mortality-Report_2015-18-180531.pdf", package="dslabs")
 
   # Open document
-system("cmd.exe", input = paste("start", fn))
+#system("cmd.exe", input = paste("start", fn))
 
 # Question 2- The variables in this dataset will be year, month, day and deaths.
 # Use the pdftools package to read in fn using the pdf_text() function. Store the results in an object called txt.
@@ -1418,10 +1418,108 @@ s
 # Use this function to trim s and assign the result to s again.
 s <- str_trim(s)
 s[1]
-
 # Question 6 Use the str_which() function to find the row with the header.
 # Save this result to header_index. Hint: find the first string that matches the pattern "2015" using the str_which() function.
 
 header_index <- str_which(s, "2015")[1]
 header_index
 s[2]
+
+# Question 7
+# We want to extract two objects from the header row: month will store the month and header will store the column names.
+header <- s[header_index]
+header
+
+x<- str_split(header, "\\s+", n = 2, simplify = TRUE)
+x
+
+month <- x[1,1]
+month
+header <- x[1,2]
+header
+
+# Question 8
+# Create an object called tail_index with the index of the "Total" entry.
+
+tail_index <- str_which(s, "Total")
+tail_index
+# Question 9
+# Because our PDF page includes graphs with numbers, some of our rows have just one number (from the y-axis of the plot).
+# Use the str_count() function to create an object n with the count of numbers in each row.
+single_n_index <- str_which(s, "^\\d+$")
+single_n_index
+sum(n)
+n <- str_which(s, "1")
+
+# Question 10
+# We are now ready to remove entries from rows that we know we don't need.
+# The entry header_index and everything before it should be removed. Entries for which n is 1 should also be removed,
+# and the entry tail_index and everything that comes after it should be removed as well.
+out <- c(1:header_index, single_n_index, tail_index:length(s))
+out
+s <- s[-out]
+length(s)
+
+# Question 11
+# Remove all text that is not a digit or space.
+s <- str_remove_all(s, "[^\\d\\s]")
+
+# Question 12
+
+s <- str_split_fixed(s, "\\s+", n = 6)[,1:5]
+
+# Add column names to the matrix: the first column should be day and the next columns should be the header.
+# Convert all values to numeric. Also, add a column with the month. Call the resulting object tab.
+
+tab <- s %>%  unlist() %>% data.frame(stringsAsFactors = FALSE) %>%
+  mutate(month = "SEP")
+
+tab <- s %>%  unlist() %>% data.frame(stringsAsFactors = FALSE) %>%
+  mutate(month = "SEP") %>%
+  mutate(days = as.numeric("days"),
+         "2015 = as")
+tab
+
+
+names(tab)[names(tab) == "X1"] <- "days"
+names(tab)[names(tab) == "X2"] <- "2015"
+names(tab)[names(tab) == "X3"] <- "2016"
+names(tab)[names(tab) == "X4"] <- "2017"
+names(tab)[names(tab) == "X5"] <- "2018"
+
+tab
+
+as.numeric(tab$"2015") %>% mean()
+as.numeric(tab$"2016") %>% mean()
+
+tab_1_19 <- tab %>% filter(days == 1:19)
+tab_1_19
+as.numeric(tab_1_19$"2017") %>% mean
+
+as.numeric(tab_1_19$"2017") %>% sum
+
+as.numeric(tab)
+
+tab <- tab %>% mutate_all(as.numeric(.X1))
+tab %>% select("2015") %>% parse_number() %>% as.numeric()
+
+
+
+
+tab <- tab %>%
+  mutate(month = "SEP")
+tab
+
+tab %>% select("2015") %>% as.numeric %>% mean()
+
+header
+    ## ASner of the book
+tab <- s %>%
+  as_data_frame() %>%
+  setNames(c("day", header)) %>%
+  mutate_all(as.numeric)
+mean(tab$"2015")
+
+mean(tab$"2016")
+mean(tab$"2017"[1:19])
+

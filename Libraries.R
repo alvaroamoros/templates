@@ -16,6 +16,7 @@ library(pdftools)
 library(lubridate)
 library(tidytext)
 library(textdata)
+library(foreign)
 
 install.packages("dplyr")
 install.packages("tidyverse")
@@ -33,3 +34,6 @@ install.packages("pdftools")
 install.packages("exuber")
 install.packages("tidytext")
 install.packages("textdata")
+install.packages("foreign")
+
+
