@@ -126,3 +126,4 @@ cor(x$win_rate, x$error_rate)
     mutate(double_per_game = X2B / G,
            triple_per_game = X3B / G)
   cor(x$double_per_game, x$triple_per_game)
+f
