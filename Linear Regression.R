@@ -667,6 +667,9 @@ get_slope <- function(data){
 }
 
 
+
+
+
 # return the desired data frame
 dat %>%
 group_by(HR) %>%
@@ -689,7 +692,379 @@ dat %>%
   do(get_lse(.))
 
 # broom
-
 library(broom)
-fit <- lm(R ~ BB, data = dat)
+
+  # use tidy to return lm estimates and related information as a data frame
+  fit <- lm(R ~ BB, data = dat)
+  fit
+  tidy(fit)
+  # add confidence intervals with tidy
+  tidy(fit, conf.int = TRUE)
+  # pipeline with lm, do, tidy
+  dat %>%
+    group_by(HR) %>%
+    do(tidy(lm(R ~ BB, data = .),conf.int = TRUE)) %>% 
+    filter(term == "BB") %>%
+    select(HR, estimate, conf.low, conf.high)
+ 
+  # make ggplots
+  dat %>%
+    group_by(HR) %>%
+    do(tidy(lm(R ~ BB, data = .),conf.int = TRUE)) %>% 
+    filter(term == "BB") %>%
+    select(HR, estimate, conf.low, conf.high) %>%
+    ggplot(aes(HR, y = estimate, ymin = conf.low, ymax = conf.high)) +
+    geom_errorbar() +
+    geom_point()
+ 
+    
+  # inspect with glance
+  glance(fit)
+
+# Assessment: Tibbles, do, and broom, part 2
+library(tidyverse)
+library(HistData)
+data("GaltonFamilies")
+set.seed(1, sample.kind = "Rounding")  
+
+head(GaltonFamilies)
+
+galton <- GaltonFamilies %>% 
+  group_by(family, gender) %>%
+  sample_n(1) %>%
+  ungroup() %>%
+  gather(parent, parentHeight, father:mother) %>%
+  mutate(child = ifelse(gender == "male", "son", "daughter")) %>%
+  unite(pair, c("parent", "child"))
+galton
+
+# Exercise 8 - Group by pair and summarize the number of observations in each group.
+# How many father-daughter pairs are in the dataset?
+
+galton %>%
+  group_by(pair) %>%
+  summarise(n())
+
+# Exercise 9 - Calculate the correlation coefficients for fathers and daughters, fathers and sons,
+# mothers and daughters and mothers and sons.
+head(galton)
+
+galton %>%
+  group_by(pair) %>%
+  do(tidy(cor(.$childHeight, .$parentHeight)))
+
+# Exercise 10 - 
+# Compute the least squares estimates, standard errors, confidence intervals and p-values for the parentHeight coefficient for each pair.
+galton %>%
+  group_by(pair) %>%
+  do(tidy(lm(childHeight ~ parentHeight, data = .), conf.int = TRUE)) %>%
+  filter(term == "parentHeight") %>%
+  mutate(length_interval = conf.high - conf.low)
+
+galton %>%
+  group_by(pair) %>%
+  do(tidy(lm(childHeight ~ parentHeight, data = .), conf.int = TRUE)) %>%
+  filter(term == "parentHeight")  %>%
+  ggplot(aes(pair, y = estimate, ymin = conf.low, ymax = conf.high)) +
+  geom_errorbar() +
+  geom_point()
+
+# Building a Better Offensive Metric for Baseball
+
+# linear regression with two  variables
+head(Teams)
+
+fit <- Teams %>%
+  filter(yearID %in% 1961:2001) %>%
+  mutate(BB = BB/G, HR = HR/G, R = R/G) %>%
+  lm(R ~ BB + HR, data = .)
+tidy(fit, conf.int = TRUE)
+
+# regression with BB, singles, doubles, triples, HR
+fit <- Teams %>% 
+  filter(yearID %in% 1961:2001) %>% 
+  mutate(BB = BB / G, 
+         singles = (H - X2B - X3B - HR) / G, 
+         doubles = X2B / G, 
+         triples = X3B / G, 
+         HR = HR / G,
+         R = R / G) %>% 
+  lm(R ~ BB + singles + doubles + triples + HR, data = . )
+tidy(fit, conf.int = TRUE)
+coefs <- tidy(fit, conf.int = TRUE)
+coefs
+
+# predict number of runs for each team in 2002 and plot
+Teams %>% 
+  filter(yearID %in% 2002) %>% 
+  mutate(BB = BB/G, 
+         singles = (H-X2B-X3B-HR)/G, 
+         doubles = X2B/G, 
+         triples =X3B/G, 
+         HR=HR/G,
+         R=R/G)  %>% 
+  mutate(R_hat = predict(fit, newdata = .)) %>%
+  ggplot(aes(R_hat, R, label = teamID)) +
+  geom_point() +
+  geom_text(nudge_x = 0.1, cex = 2) +
+  geom_abline()
+
+# average number of team plate appearances per game
+pa_per_game <- Batting %>% 
+  filter(yearID == 2002) %>%
+  group_by(teamID) %>%
+  summarise(pa_per_game = sum(AB + BB) / max(G)) %>%
+  pull(pa_per_game) %>%
+  mean
+pa_per_game
+
+# compute per-plate-appearance rates for players available in 2002 using previous data
+
+players <- Batting %>%
+  filter(yearID %in% 1999:2001) %>% 
+  group_by(playerID) %>%
+  mutate(PA = BB + AB) %>%
+  summarize(G = sum(PA)/pa_per_game,
+            BB = sum(BB)/G,
+            singles = sum(H-X2B-X3B-HR)/G,
+            doubles = sum(X2B)/G, 
+            triples = sum(X3B)/G, 
+            HR = sum(HR)/G,
+            AVG = sum(H)/sum(AB),
+            PA = sum(PA)) %>%
+  filter(PA >= 300) %>%
+  select(-G) %>%
+  mutate(R_hat = predict(fit, newdata = .))
+
+# plot player-specific predicted runs
+qplot(R_hat, data = players, geom = "histogram", binwidth = 0.5, color = I("black"))
+
+# add 2002 salary of each player
+players <- 
+  Salaries %>%
+  filter(yearID == 2002) %>%
+  select(salary, playerID) %>%
+  right_join(players, by="playerID")
+
+# add defensive postion 
+position_names <- c("G_p","G_c","G_1b","G_2b","G_3b","G_ss","G_lf","G_cf","G_rf")
+tmp_tab <- Appearances %>% 
+  filter(yearID == 2002) %>% 
+  group_by(playerID) %>%
+  summarize_at(position_names, sum) %>%
+  ungroup()  
+pos <- tmp_tab %>%
+  select(position_names) %>%
+  apply(., 1, which.max) 
+
+players <- data_frame(playerID = tmp_tab$playerID, POS = position_names[pos]) %>%
+  mutate(POS = str_to_upper(str_remove(POS, "G_"))) %>%
+  filter(POS != "P") %>%
+  right_join(players, by="playerID") %>%
+  filter(!is.na(POS)  & !is.na(salary))
+head(players)
+
+
+# add players' first and last names
+players <- Master %>%
+  select(playerID, nameFirst, nameLast, debut) %>%
+  mutate(debut = as.Date(debut)) %>%
+  right_join(players, by="playerID")
+
+# top 10 players
+players %>% select(nameFirst, nameLast, POS, salary, R_hat) %>% 
+  arrange(desc(R_hat)) %>% 
+  top_n(10) 
+
+# players with a higher metric have higher salaries
+players %>% ggplot(aes(salary, R_hat, color = POS)) + 
+  geom_point() +
+  scale_x_log10()
+
+
+# remake plot without players that debuted after 1998
+library(lubridate)
+players %>% filter(year(debut) < 1998) %>%
+  ggplot(aes(salary, R_hat, color = POS)) + 
+  geom_point() +
+  scale_x_log10()
+
+
+# Linear Programming
+library(reshape2)
+library(lpSolve)
+
+players <- players %>% filter(debut <= "1997-01-01" & debut > "1988-01-01")
+constraint_matrix <- acast(players, POS ~ playerID, fun.aggregate = length)
+constraint_matrix
+npos <- nrow(constraint_matrix)
+npos
+constraint_matrix <- rbind(constraint_matrix, salary = players$salary)
+constraint_matrix
+constraint_dir <- c(rep("==", npos), "<=")
+constraint_dir
+constraint_limit <- c(rep(1, npos), 50*10^6)
+constraint_limit
+
+lp_solution <- lp("max", players$R_hat,
+                  constraint_matrix, constraint_dir, constraint_limit,
+                  all.int = TRUE) 
+
+our_team <- players %>%
+  filter(lp_solution$solution == 1) %>%
+  arrange(desc(R_hat))
+our_team %>% select(nameFirst, nameLast, POS, salary, R_hat)
+
+# Question 3
+# Team A is comprised of batters who, on average, get two bases on balls, four singles, one double, no triples, and one home run. 
+# Team B is comprised of batters who, on average, get one base on balls, six singles, two doubles, one triple, and no home runs.
+A <- c(2, 4, 1, 0, 1)
+
+B <- c( 1, 6 ,2, 1, 0 )
+
+test <- as.data.frame(rbind(A, B))
+colnames(test) <-c("BB", "singles", "doubles", "triples", "HR")
+
+R_hat = predict(fit, newdata = test)
+R_hat
+
+# Assessment: Regression and baseball, part 2
+# Fit a multivariate linear regression model to obtain the effects of BB and HR on Runs (R) in 1971
+teams <- Teams %>%
+  filter(yearID == 1971)
+
+fit <- lm(R ~ BB + HR, data = teams)
 tidy(fit)
+
+# Repeat the above exercise to find the effects of BB and HR on runs (R) for every year from 1961 to 2018 using do()
+# Make a scatterplot of the estimate for the effect of BB on runs over time and add a trend line with confidence intervals.
+res <- Teams %>%
+  filter(yearID %in% 1961:2018) %>%
+  group_by(yearID) %>%
+  do(tidy(lm(R ~ BB + HR, data = .))) %>%
+  ungroup() 
+res %>%
+  filter(term == "BB") %>%
+  ggplot(aes(yearID, estimate)) +
+  geom_point() +
+  geom_smooth(method = "lm")
+
+# Fit a linear model on the results from Question 10 to determine the effect of year on the impact of BB.
+res %>%
+  filter(term == "BB") %>%
+  do(tidy(lm(estimate ~ yearID, data = .)))
+
+# Assessment: Confounding
+library(dslabs)
+data("research_funding_rates")
+research_funding_rates
+
+# Question 1-  Construct a two-by-two table of gender (men/women) by award status (awarded/not) using the total numbers across all disciplines.
+research_funding_rates <- as.tibble(research_funding_rates)
+head(research_funding_rates)
+
+two_by_two <- research_funding_rates %>% 
+  select(-discipline) %>% 
+  summarize_all(funs(sum)) %>%
+  summarize(yes_men = awards_men, 
+            no_men = applications_men - awards_men, 
+            yes_women = awards_women, 
+            no_women = applications_women - awards_women) %>%
+  gather %>%
+  separate(key, c("awarded", "gender")) %>%
+  spread(gender, value)
+two_by_two
+         
+
+# Question 4
+
+dat <- research_funding_rates %>% 
+  mutate(discipline = reorder(discipline, success_rates_total)) %>%
+  rename(success_total = success_rates_total,
+         success_men = success_rates_men,
+         success_women = success_rates_women) %>%
+  gather(key, value, -discipline) %>%
+  separate(key, c("type", "gender")) %>%
+  spread(type, value) %>%
+  filter(gender != "total")
+dat
+
+dat %>% ggplot(aes(discipline, success, col = gender, size = applications )) + geom_point()
+
+dat %>% filter(gender == "women")
+
+dat %>% select(discipline, success) %>% gather(discipline)
+
+
+# Assessment: Linear Models 
+library(tidyverse)
+library(broom)
+library(Lahman)
+Teams_small <- Teams %>% 
+  filter(yearID %in% 1961:2001) %>% 
+  mutate(avg_attendance = attendance/G,
+         R_PG = R / G,
+         HR_PG = HR / G)
+
+head(Teams_small)
+
+# Use runs (R) per game to predict average attendance.
+tidy(lm(avg_attendance ~ R_PG, data = Teams_small))
+
+# Use home runs (HR) per game to predict average attendance.
+tidy(lm(avg_attendance ~ HR_PG, data = Teams_small))
+
+# Use number of wins to predict average attendance; do not normalize for number of games.
+tidy(lm(avg_attendance ~ W, data = Teams_small))
+
+# Use year to predict average attendance.
+tidy(lm(avg_attendance ~ yearID, data = Teams_small))
+
+# What is the correlation coefficient for wins and runs per game?
+cor(Teams_small$W, Teams_small$R_PG)
+
+# What is the correlation coefficient for wins and home runs per game?
+cor(Teams_small$W, Teams_small$HR_PG)
+
+# Stratify Teams_small by wins: divide number of wins by 10 and then round to the nearest integer. Keep only strata 5 through 10, which have 20 or more data points.
+teams_small <- Teams_small %>% 
+  mutate(wins = round(W/10)) %>%
+  filter(wins > 4)
+head(teams_small)
+
+# How many observations are in the 8 win strata?
+teams_small %>%
+  filter(wins == 8) %>%
+  nrow()
+
+# Calculate the slope of the regression line predicting average attendance given runs per game for each of the win strata.
+teams_small %>%
+  group_by(wins) %>%
+  do(tidy(lm(avg_attendance ~ R_PG, data = .))) %>%
+  filter(term == "R_PG")
+
+# Calculate the slope of the regression line predicting average attendance given HR per game for each of the win strata.
+teams_small %>%
+  group_by(wins) %>%
+  do(tidy(lm(avg_attendance ~ HR_PG, data = .))) %>%
+  filter(term == "HR_PG")
+
+# Fit a multivariate regression determining the effects of runs per game, home runs per game, wins, and year on average attendance.
+fit <- Teams_small %>%
+  do(tidy(lm(avg_attendance ~ R_PG + HR_PG + W + yearID, data = .)))
+
+
+# Suppose a team averaged 5 runs per game, 1.2 home runs per game, and won 80 games in a season.
+# What would this team's average attendance be in 2002?
+predict(fit, data.frame(R_per_game = 5, HR_per_game = 1.2, W = 80, yearID = 2002))
+
+# Use your model from Question 4 to predict average attendance for teams in 2002 in the original Teams data frame.
+# What is the correlation between the predicted attendance and actual attendance?
+
+newdata <- Teams %>%
+  filter(yearID == 2002) %>%
+  mutate(avg_attendance = attendance/G,
+         R_per_game = R/G,
+         HR_per_game = HR/G)
+preds <- predict(fit, newdata)
+cor(preds, newdata$avg_attendance)
