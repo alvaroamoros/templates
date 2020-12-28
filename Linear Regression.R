@@ -1,5 +1,5 @@
 # Data science: Linear Regression
-# 10/22/20
+# 10/22/20 
 rm(list = ls())
 
 # Section 1: Introduction to Regression / 1.1: Baseball as a Motivating Example
