@@ -2530,6 +2530,7 @@ fits <- lapply(models, function(model){
 
 names(fits) <- models
 
+
 # QUESTION 2 
 # Now that you have all the trained models in a list, use sapply() or map() to create a matrix of predictions for the test set. 
 # You should end up with a matrix with length(mnist_27$test$y) rows and length(models) columns.
@@ -2539,3 +2540,726 @@ length(models)
 pred <- sapply(fits, function(object) 
   predict(object, newdata = mnist_27$test))
 dim(pred)
+
+# QUESTION 3 - Now compute accuracy for each model on the test set.
+# Report the mean accuracy across all models.
+
+colnames(pred) <- 1:ncol(pred)
+head(pred)
+
+x <- 1:10
+
+acurracies <- sapply(x , function(x){
+  confusionMatrix(factor(pred[,x]), mnist_27$test$y)$overall["Accuracy"]
+
+})
+mean(acurracies)
+
+# QUESTION 4 
+# Next, build an ensemble prediction by majority vote and compute the accuracy of the ensemble. 
+# Vote 7 if more than 50% of the models are predicting a 7, and 2 otherwise.
+head(pred)
+pred
+x <- 1:200
+x
+
+ifelse(sum(as.numeric(pred[81,])) >= 50, 7, 2)
+
+majority_vote <- sapply(x, function(x){
+  ifelse(sum(as.numeric(pred[x,])) >= 50, 7, 2)
+  
+})
+
+mean(majority_vote == mnist_27$test$y)
+
+# QUESTION 5 - How many of the individual methods do better than the ensemble?
+acurracies <- as.data.frame(acurracies)
+row.names(acurracies) <- c("glm", "lda", "naive_bayes", "svmLinear", "knn", "gamLoess", "multinom", "qda", "rf", "adaboost")
+acurracies
+
+
+# QUESTION 6 
+# It is tempting to remove the methods that do not perform well and re-do the ensemble. 
+#The problem with this approach is that we are using the test data to make a decision. 
+# However, we could use the minimum accuracy estimates obtained from cross validation with the training data for each model from fit$results$Accuracy.
+# Obtain these estimates and save them in an object.
+min(fits[[10]]$results$Accuracy)
+x <- 1:10
+
+minim_accuracy_estimates <- sapply(x, function(x){
+  min(fits[[x]]$results$Accuracy)
+  
+})
+mean(minim_accuracy_estimates)
+
+
+# QUESTION 7
+# Now let's only consider the methods with a minimum accuracy estimate of greater than or equal to 0.8 when constructing the ensemble. 
+# Vote 7 if 50% or more of those models are predicting a 7, and 2 otherwise.
+minim_accuracy_estimates <- as.data.frame(minim_accuracy_estimates)
+rownames(minim_accuracy_estimates) <- c("glm", "lda", "naive_bayes", "svmLinear", "knn", "gamLoess", "multinom", "qda", "rf", "adaboost")
+
+z <- minim_accuracy_estimates %>%
+  filter(minim_accuracy_estimates > 0.8) %>%
+  row.names()
+z
+
+colnames(pred) <- c("glm", "lda", "naive_bayes", "svmLinear", "knn", "gamLoess", "multinom", "qda", "rf", "adaboost")
+
+pred_minimum_accuracy <- as.tibble(pred) %>%
+  select(z)
+nrow(pred_minimum_accuracy)
+x <- 1:200
+
+majority_vote2 <- sapply(x, function(x){
+  ifelse(sum(as.numeric(pred_minimum_accuracy[x,])) >= 27, 7, 2)
+  
+})
+mean(majority_vote2 == mnist_27$test$y)
+
+
+# Recommendation Systems
+library(tidyverse)
+library(dslabs)
+data("movielens")
+
+movielens %>% as_tibble()
+
+users <- sample(unique(movielens$userId), 100)
+rafalib::mypar()
+movielens %>% filter(userId %in% users) %>% 
+  select(userId, movieId, rating) %>%
+  mutate(rating = 1) %>%
+  spread(movieId, rating) %>% select(sample(ncol(.), 100)) %>% 
+  as.matrix() %>% t(.) %>%
+  image(1:100, 1:100,. , xlab="Movies", ylab="Users")
+abline(h=0:100+0.5, v=0:100+0.5, col = "grey")
+
+movielens %>% 
+  summarize(n_users = n_distinct(userId),
+            n_movies = n_distinct(movieId))
+keep <- movielens %>%
+  dplyr::count(movieId) %>%
+  top_n(5) %>%
+  pull(movieId)
+
+tab <- movielens %>%
+  filter(userId %in% c(13:20)) %>% 
+  filter(movieId %in% keep) %>% 
+  select(userId, title, rating) %>% 
+  spread(title, rating)
+tab %>% knitr::kable()
+
+library(caret)
+set.seed(755, sample.kind = "Rounding")
+test_index <- createDataPartition(y = movielens$rating, times = 1, p = 0.2, 
+                                  list = FALSE)
+train_set <- movielens[-test_index,]
+test_set <- movielens[test_index,]
+
+test_set <- test_set %>% 
+  semi_join(train_set, by = "movieId") %>%
+  semi_join(train_set, by = "userId")
+
+head(test_set)
+
+# Let’s write a function that computes the RMSE for vectors of ratings and their corresponding predictors:
+RMSE <- function(true_ratings, predicted_ratings){
+  sqrt(mean((true_ratings - predicted_ratings)^2))
+}
+
+# Building the Recommendation System
+head(train_set)
+
+mu_hat <- mean(train_set$rating)
+mu_hat
+
+naive_rmse <- RMSE(test_set$rating, mu_hat)
+naive_rmse
+
+rmse_results <- tibble(method = "Just the average", RMSE = naive_rmse)
+
+rmse_results
+
+fit <- lm(rating ~ as.factor(userId), data = movielens)
+coefs <-fit$coefficients
+coefs
+mu <- mean(train_set$rating)
+
+movie_avgs <- train_set %>% 
+  group_by(movieId) %>% 
+  summarize(b_i = mean(rating - mu))
+movie_avgs
+
+movie_avgs %>% qplot(b_i, geom ="histogram", bins = 10, data = ., color = I("black"))
+
+predicted_ratings <- mu + test_set %>% 
+  left_join(movie_avgs, by='movieId') %>%
+  .$b_i
+head(predicted_ratings)
+
+model_1_rmse <- RMSE(predicted_ratings, test_set$rating)
+model_1_rmse
+rmse_results <- bind_rows(rmse_results,
+                          data_frame(method="Movie Effect Model",
+                                     RMSE = model_1_rmse ))
+
+rmse_results %>% knitr::kable()
+
+train_set %>% 
+  group_by(userId) %>% 
+  summarize(b_u = mean(rating)) %>% 
+  filter(n()>=100) %>%
+  ggplot(aes(b_u)) + 
+  geom_histogram(bins = 30, color = "black")
+
+#lm(rating ~ as.factor(movieId) + as.factor(userId))
+user_avgs <- test_set %>% 
+  left_join(movie_avgs, by='movieId') %>%
+  group_by(userId) %>%
+  summarize(b_u = mean(rating - mu - b_i))
+user_avgs
+
+
+predicted_ratings <- test_set %>% 
+  left_join(movie_avgs, by='movieId') %>%
+  left_join(user_avgs, by='userId') %>%
+  mutate(pred = mu + b_i + b_u) %>%
+  .$pred
+
+predicted_ratings
+
+model_2_rmse <- RMSE(predicted_ratings, test_set$rating)
+rmse_results <- bind_rows(rmse_results,
+                          data_frame(method="Movie + User Effects Model",  
+                                     RMSE = model_2_rmse ))
+rmse_results %>% knitr::kable()
+
+
+# Comprehension Check: Recommendation Systems
+library(tidyverse)
+library(lubridate)
+library(dslabs)
+data("movielens")
+
+
+# QUESTION 1 
+# Compute the number of ratings for each movie and then plot it against the year the movie came out using a boxplot for each year. 
+# Use the square root transformation on the y-axis (number of ratings) when creating your plot.
+# What year has the highest median number of ratings?
+head(movielens)
+
+  movielens %>% group_by(movieId) %>%
+    summarize(n = n(), year = as.character(first(year))) %>%
+    qplot(year, n, data = ., geom = "boxplot") +
+    coord_trans(y = "sqrt") +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1))
+    
+# QUESTION 2 
+# Among movies that came out in 1993 or later, select the top 25 movies with the highest average number of ratings per year (n/year), 
+#and caculate the average rating of each of them. To calculate number of ratings per year, use 2018 as the end year.
+
+#What is the average number of ratings per year for the movie Forrest Gump?
+  movielens %>%
+    filter(year >= 1993) %>%
+    group_by(title) %>%
+    summarise(n_of_ratings = n(), year = year, yeardiff = 2018 - year) %>%
+    group_by(title, year) %>%
+    summarise(medians = median(n_of_ratings/yeardiff)) %>%
+    arrange(desc(medians)) %>%
+    top_n(25)
+    
+# What is the average rating for the movie "The Shawshank Redemption?
+  movielens %>%
+    filter(year >= 1993) %>%
+    filter(title == "Shawshank Redemption, The") %>%
+    group_by(title) %>%
+    summarise(mean(rating))
+  
+# QUESTION 3 
+# stratify the post-1993 movies by ratings per year and compute their average ratings. 
+# To calculate number of ratings per year, use 2018 as the end year. 
+# Make a plot of average rating versus ratings per year and show an estimate of the trend.
+  movielens %>%
+    filter(year >= 1993) %>%
+    group_by(title) %>%
+    summarise(n_of_ratings = n(), year = year, yeardiff = 2018 - year, rating = rating) %>%
+    group_by(title, year) %>%
+    mutate(rating_per_year = mean(n_of_ratings / yeardiff)) %>%
+    group_by(title) %>%
+    mutate(avg_rating = mean(rating)) %>%
+    ggplot(aes(rating_per_year, avg_rating)) +
+    geom_point() +
+    geom_smooth()
+  
+# QUESTION 5 
+movielens <- mutate(movielens, date = as_datetime(timestamp))
+head(movielens)
+
+# QUESTION 6 
+# Compute the average rating for each week and plot this average against date. Hint: use the round_date() function before you group_by().
+movielens <- movielens %>%
+  mutate(date = round_date(date, unit = "week"))
+ 
+movielens %>%
+  group_by(date) %>%
+  mutate(week_avg = mean(rating)) %>%
+  ggplot(aes(date, week_avg)) +
+  geom_point() +
+  geom_smooth()
+
+movielens %>% mutate(date = round_date(date, unit = "week")) %>%
+  group_by(date) %>%
+  summarize(rating = mean(rating)) %>%
+  ggplot(aes(date, rating)) +
+  geom_point() +
+  geom_smooth()
+
+# QUESTION 8 
+movielens %>% group_by(genres) %>%
+  summarize(n = n(), avg = mean(rating), se = sd(rating)/sqrt(n())) %>%
+  filter(n >= 1000) %>% 
+  mutate(genres = reorder(genres, avg)) %>%
+  ggplot(aes(x = genres, y = avg, ymin = avg - 2*se, ymax = avg + 2*se)) + 
+  geom_point() +
+  geom_errorbar() + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+  
+# REGULARIZATION 
+library(dslabs)
+library(tidyverse)
+library(caret)
+data("movielens")
+set.seed(755)
+test_index <- createDataPartition(y = movielens$rating, times = 1,
+                                  p = 0.2, list = FALSE)
+train_set <- movielens[-test_index,]
+test_set <- movielens[test_index,]
+test_set <- test_set %>% 
+  semi_join(train_set, by = "movieId") %>%
+  semi_join(train_set, by = "userId")
+RMSE <- function(true_ratings, predicted_ratings){
+  sqrt(mean((true_ratings - predicted_ratings)^2))
+}
+mu_hat <- mean(train_set$rating)
+naive_rmse <- RMSE(test_set$rating, mu_hat)
+rmse_results <- data_frame(method = "Just the average", RMSE = naive_rmse)
+mu <- mean(train_set$rating) 
+movie_avgs <- train_set %>% 
+  group_by(movieId) %>% 
+  summarize(b_i = mean(rating - mu))
+predicted_ratings <- mu + test_set %>% 
+  left_join(movie_avgs, by='movieId') %>%
+  .$b_i
+model_1_rmse <- RMSE(predicted_ratings, test_set$rating)
+rmse_results <- bind_rows(rmse_results,
+                          data_frame(method="Movie Effect Model",
+                                     RMSE = model_1_rmse ))
+user_avgs <- test_set %>% 
+  left_join(movie_avgs, by='movieId') %>%
+  group_by(userId) %>%
+  summarize(b_u = mean(rating - mu - b_i))
+predicted_ratings <- test_set %>% 
+  left_join(movie_avgs, by='movieId') %>%
+  left_join(user_avgs, by='userId') %>%
+  mutate(pred = mu + b_i + b_u) %>%
+  .$pred
+model_2_rmse <- RMSE(predicted_ratings, test_set$rating)
+rmse_results <- bind_rows(rmse_results,
+                          data_frame(method="Movie + User Effects Model",  
+                                     RMSE = model_2_rmse ))
+
+test_set %>% 
+  left_join(movie_avgs, by='movieId') %>%
+  mutate(residual = rating - (mu + b_i)) %>%
+  arrange(desc(abs(residual))) %>% 
+  select(title,  residual) %>% slice(1:10) %>% knitr::kable()
+
+movie_titles <- movielens %>% 
+  select(movieId, title) %>%
+  distinct()
+movie_avgs %>% left_join(movie_titles, by="movieId") %>%
+  arrange(desc(b_i)) %>% 
+  select(title, b_i) %>% 
+  slice(1:10) %>%  
+  knitr::kable()
+
+movie_avgs %>% left_join(movie_titles, by="movieId") %>%
+  arrange(b_i) %>% 
+  select(title, b_i) %>% 
+  slice(1:10) %>%  
+  knitr::kable()
+
+train_set %>% dplyr::count(movieId) %>% 
+  left_join(movie_avgs) %>%
+  left_join(movie_titles, by="movieId") %>%
+  arrange(desc(b_i)) %>% 
+  select(title, b_i, n) %>% 
+  slice(1:10) %>% 
+  knitr::kable()
+
+train_set %>% dplyr::count(movieId) %>% 
+  left_join(movie_avgs) %>%
+  left_join(movie_titles, by="movieId") %>%
+  arrange(b_i) %>% 
+  select(title, b_i, n) %>% 
+  slice(1:10) %>% 
+  knitr::kable()
+
+# Correction for outliers (regularization). Penalized least squares
+
+lambda <- 3
+mu <- mean(train_set$rating)
+movie_reg_avgs <- train_set %>%
+  group_by(movieId) %>%
+  summarise(b_i = sum(rating- mu) / n() + lambda, n_i = n())
+
+predicted_ratings <- test_set %>% 
+  left_join(movie_reg_avgs, by = "movieId") %>%
+  mutate(pred = mu + b_i) %>%
+  pull(pred)
+RMSE(predicted_ratings, test_set$rating)
+
+# Choosing the penalty terms
+lambdas <- seq(0, 100, 0.25)
+mu <- mean(train_set$rating)
+just_the_sum <- train_set %>% 
+  group_by(movieId) %>% 
+  summarize(s = sum(rating - mu), n_i = n())
+rmses <- sapply(lambdas, function(l){
+  predicted_ratings <- test_set %>% 
+    left_join(just_the_sum, by='movieId') %>% 
+    mutate(b_i = s/(n_i+l)) %>%
+    mutate(pred = mu + b_i) %>%
+    .$pred
+  return(RMSE(predicted_ratings, test_set$rating))
+})
+qplot(lambdas, rmses)  
+lambdas[which.min(rmses)]
+
+
+lambdas <- seq(0, 10, 0.25)
+rmses <- sapply(lambdas, function(l){
+  mu <- mean(train_set$rating)
+  b_i <- train_set %>%
+    group_by(movieId) %>%
+    summarize(b_i = sum(rating - mu)/(n()+l))
+  b_u <- train_set %>% 
+    left_join(b_i, by="movieId") %>%
+    group_by(userId) %>%
+    summarize(b_u = sum(rating - b_i - mu)/(n()+l))
+  predicted_ratings <- 
+    test_set %>% 
+    left_join(b_i, by = "movieId") %>%
+    left_join(b_u, by = "userId") %>%
+    mutate(pred = mu + b_i + b_u) %>%
+    .$pred
+  return(RMSE(predicted_ratings, test_set$rating))
+})
+
+qplot(lambdas, rmses)  
+
+lambda <- lambdas[which.min(rmses)]
+lambda
+
+rmse_results <- bind_rows(rmse_results,
+                          data_frame(method="Regularized Movie + User Effect Model",  
+                                     RMSE = min(rmses)))
+rmse_results %>% knitr::kable()
+
+
+# Comprehension Check: Regularization
+options(digits=7).
+set.seed(1986, sample.kind="Rounding") 
+n <- round(2^rnorm(1000, 8, 1))
+
+set.seed(1, sample.kind="Rounding") 
+mu <- round(80 + 2*rt(1000, 5))
+range(mu)
+schools <- data.frame(id = paste("PS",1:1000),
+                      size = n,
+                      quality = mu,
+                      rank = rank(-mu))
+schools %>% top_n(10, quality) %>% arrange(desc(quality))
+
+set.seed(1, sample.kind="Rounding") 
+mu <- round(80 + 2*rt(1000, 5))
+
+scores <- sapply(1:nrow(schools), function(i){
+  scores <- rnorm(schools$size[i], schools$quality[i], 30)
+  scores
+})
+schools <- schools %>% mutate(score = sapply(scores, mean))
+
+# QUESTION 1 - What are the top schools based on the average score? Show just the ID, size, and the average score.
+schools %>% top_n(10, score) %>%
+  arrange(desc(score))
+
+# QUESTION 2  - Compare the median school size to the median school size of the top 10 schools based on the score.
+# What is the median school size overall?
+median(schools$size)
+
+# What is the median school size of the of the top 10 schools based on the score?
+schools %>% top_n(10, score) %>%
+  summarise(median(size))
+
+# QUESTION 3 - Repeat the exercise for the worst 10 schools.
+# What is the median school size of the bottom 10 schools based on the score?
+schools %>% slice_min(score, n = 10) %>%
+  summarise(median(size))
+
+# QUESTION 4 - Plot the average score versus school size to see what's going on. Highlight the top 10 schools based on the true quality.
+schools %>% slice_max(rank, n = 10) %>%
+  arrange(desc(rank))
+
+schools %>% ggplot(aes(size, score)) +
+  geom_point(alpha = 0.5) +
+  geom_point(data = filter(schools, rank<=10), col = 2)
+
+# QUESTION 5 - Write code that estimates the score above the average for each school but dividing by  n+??  instead of  n , with  n  the school size 
+# and  ??  a regularization parameter. Try  ??
+head(schools)
+overall <- mean(sapply(scores, mean))
+alfa <- 25
+
+# What is the ID of the top school with regularization?
+schools %>%
+  mutate(regularized_score = overall + size * (score - overall) / (size + alfa)) %>%
+  slice_max(regularized_score, n = 10) %>%
+  arrange(desc(regularized_score))
+
+# QUESTION 6 - Using values of  ??  from 10 to 250, find the  ??  that minimizes the RMSE.
+alfa <- seq(10, 250, 1)
+
+RMSE <- function(quality, estimate){
+  sqrt(mean((quality - estimate)^2))
+}
+
+rmses <- sapply(alfa, function(l){
+  predicterd_scores <- schools %>%
+    mutate(regularized_score = overall + size * (score - overall) / (size + l)) %>%
+    select(regularized_score) %>%
+    .$regularized_score
+  return(RMSE(predicterd_scores, schools$quality))
+})
+rmses
+
+data.frame(rmses, alfa) %>%
+  arrange(rmses)
+
+# QUESTION 7 - Rank the schools based on the average obtained with the best  ??  from Q6. 
+alfa <- 135 
+schools %>%
+  mutate(regularized_score = overall + size * (score - overall) / (size + alfa)) %>%
+  slice_max(regularized_score, n = 10) %>%
+  arrange(desc(regularized_score))
+
+# QUESTION 8 - A common mistake made when using regularization is shrinking values towards 0 that are not centered around 0. For example, 
+# if we don't subtract the overall average before shrinking, we actually obtain a very similar result. Confirm this by re-running the code 
+# from the exercise in Q6 but without removing the overall mean.
+alphas <- seq(10,250)
+rmse <- sapply(alphas, function(alpha){
+  score_reg <- sapply(scores, function(x) sum(x)/(length(x)+alpha))
+  sqrt(mean((score_reg - schools$quality)^2))
+})
+plot(alphas, rmse)
+alphas[which.min(rmse)]
+
+
+
+
+#  Matrix factorization
+# Groups of movies have similar rating patterns and groups of users have similar rating patterns as well.
+# To see this, we will convert the data into a matrix so that each user gets a row, each movie gets a column.
+data(movielens)
+
+train_small <- movielens %>% 
+  group_by(movieId) %>%
+  filter(n() >= 50 | movieId == 3252) %>% ungroup() %>% 
+  group_by(userId) %>%
+  filter(n() >= 50) %>% ungroup()
+
+y <- train_small %>% 
+  select(userId, movieId, rating) %>%
+  spread(movieId, rating) %>%
+  as.matrix()
+
+# We add row names and column names:
+rownames(y)<- y[,1]
+y <- y[,-1]
+
+movie_titles <- movielens %>% 
+  select(movieId, title) %>%
+  distinct()
+
+colnames(y) <- with(movie_titles, title[match(colnames(y), movieId)])
+
+# And convert them to residuals by removing the column and row effects:
+y <- sweep(y, 2, colMeans(y, na.rm = TRUE))
+y <- sweep(y, 1, rowMeans(y, na.rm=TRUE))
+
+
+# if the model above explains all the signals, and the  ??
+# are just noise, then the residuals for different movies should be independent from each other. But they are not. Here are some examples:
+m_1 <- "Godfather, The"
+m_2 <- "Godfather: Part II, The"
+p1 <- qplot(y[ ,m_1], y[,m_2], xlab = m_1, ylab = m_2)
+
+m_1 <- "Godfather, The"
+m_3 <- "Goodfellas"
+p2 <- qplot(y[ ,m_1], y[,m_3], xlab = m_1, ylab = m_3)
+
+m_4 <- "You've Got Mail" 
+m_5 <- "Sleepless in Seattle" 
+p3 <- qplot(y[ ,m_4], y[,m_5], xlab = m_4, ylab = m_5)
+
+m_4 <- "You've Got Mail" 
+m_1 <- "Godfather, The"
+p4 <- qqplot(y[,m_4], y[,m_1], xlab = m_4, ylab = m_1)
+
+gridExtra::grid.arrange(p1, p2 ,p3, ncol = 3)
+
+
+# By looking at the correlation between movies, we can see a pattern (we rename the columns to save print space):
+x <- y[, c(m_1, m_2, m_3, m_4, m_5)]
+short_names <- c("Godfather", "Godfather2", "Goodfellas",
+                 "You've Got", "Sleepless")
+colnames(x) <- short_names
+
+cor(x, use="pairwise.complete")
+
+# Factors analysis
+round(x, 1)
+cor(x)
+
+
+# Connection to SVD and PCA
+# SVD is an algorithm that finds the vectors p and q that permit us to rewrite the matrix r with m rows and n 
+#with the variability of each term decreasing and with the  
+# The algorithm also computes this variability so that we can know how much of the matrices, total variability is explained as we add new terms. 
+# Let's see an example with the movie data. To compute the decomposition, we will make the residuals with NAs equal to 0:
+y[is.na(y)] <- 0
+pca <- prcomp(y)
+
+# The  q vectors are called the principal components and they are stored in this matrix:
+dim(pca$rotation)
+
+# While the  p, or the user effects, are here:
+dim(pca$x)
+
+# We can see the variability of each of the vectors:
+qplot(1:nrow(x), pca$sdev, xlab = "PC")
+
+# We also notice that the first two principal components are related to the structure in opinions about movies:
+pcs <- data.frame(pca$rotation, name = colnames(y))
+pcs %>%  ggplot(aes(PC1, PC2)) + geom_point() + 
+  geom_text_repel(aes(PC1, PC2, label=name),
+                  data = filter(pcs, 
+                                PC1 < -0.1 | PC1 > 0.1 | PC2 < -0.075 | PC2 > 0.1))
+
+
+
+# Comprehension Check: Matrix Factorization
+set.seed(1987, sample.kind="Rounding")
+n <- 100
+k <- 8
+Sigma <- 64  * matrix(c(1, .75, .5, .75, 1, .5, .5, .5, 1), 3, 3) 
+m <- MASS::mvrnorm(n, rep(0, 3), Sigma)
+m <- m[order(rowMeans(m), decreasing = TRUE),]
+y <- m %x% matrix(rep(1, k), nrow = 1) + matrix(rnorm(matrix(n*k*3)), n, k*3)
+colnames(y) <- c(paste(rep("Math",k), 1:k, sep="_"),
+                 paste(rep("Science",k), 1:k, sep="_"),
+                 paste(rep("Arts",k), 1:k, sep="_"))
+
+# QUESTION 1 - You can visualize the 24 test scores for the 100 students by plotting an image:
+my_image <- function(x, zlim = range(x), ...){
+  colors = rev(RColorBrewer::brewer.pal(9, "RdBu"))
+  cols <- 1:ncol(x)
+  rows <- 1:nrow(x)
+  image(cols, rows, t(x[rev(rows),,drop=FALSE]), xaxt = "n", yaxt = "n",
+        xlab="", ylab="",  col = colors, zlim = zlim, ...)
+  abline(h=rows + 0.5, v = cols + 0.5)
+  axis(side = 1, cols, colnames(x), las = 2)
+}
+
+my_image(y)
+
+# QUESTION 2 - You can examine the correlation between the test scores directly like this:
+my_image(cor(y), zlim = c(-1,1))
+range(cor(y))
+axis(side = 2, 1:ncol(y), rev(colnames(y)), las = 2)
+
+
+
+
+# Comprehension Check: Dimension Reduction
+data("tissue_gene_expression")
+dim(tissue_gene_expression$x)
+
+# QUESTION 1- We want to get an idea of which observations are close to each other, but, as you can see from the dimensions, 
+# the predictors are 500-dimensional, making plotting difficult. 
+#Plot the first two principal components with color representing tissue type.
+pc <- prcomp(tissue_gene_expression$x)
+
+data.frame(pc_1 = pc$x[,1], pc_2 = pc$x[,2], 
+           tissue = tissue_gene_expression$y) %>%
+  ggplot(aes(pc_1, pc_2, color = tissue)) +
+  geom_point()
+
+#QUESTION 2 - For each observation, compute the average across all predictors, and then plot this against the first PC with color representing tissue.
+# Report the correlation.
+x <- as.data.frame(tissue_gene_expression$x)
+rowMeans(x)
+
+data.frame(rowavg = rowMeans(x), pc_1 = pc$x[,1],
+           tissue = tissue_gene_expression$y) %>%
+  ggplot(aes(rowavg, pc_1, color = tissue)) +
+  geom_point()
+
+d <- data.frame(rowavg = rowMeans(x), pc_1 = pc$x[,1],
+           tissue = tissue_gene_expression$y)
+cor(d$pc_1, d$rowavg)
+
+# QUESTION 3 - We see an association with the first PC and the observation averages. 
+# Redo the PCA but only after removing the center. Part of the code is provided for you.
+x <- with(tissue_gene_expression, sweep(x, 1, rowMeans(x)))
+pc <- prcomp(x)
+data.frame(pc_1 = pc$x[,1], pc_2 = pc$x[,2], 
+           tissue = tissue_gene_expression$y) %>%
+  ggplot(aes(pc_1, pc_2, color = tissue)) +
+  geom_point()
+
+# QUESTION 4 
+data.frame(pc_7 = pc$x[,7], tissue = tissue_gene_expression$y) %>%
+  ggplot(aes(pc_7, color = tissue)) +
+  geom_boxplot()
+
+# QUESTION 5 Plot the percent variance explained by PC number. Hint: use the summary function.
+# How many PCs are required to reach a cumulative percent variance explained greater than 50%?
+plot(summary(pc)$importance[3,])
+
+
+# Comprehension Check: Clustering
+
+# QUESTION 1 - Load the tissue_gene_expression dataset. Remove the row means and compute the distance between each observation. 
+# Store the result in d.
+d <- dist(tissue_gene_expression$x - rowMeans(tissue_gene_expression$x))
+d
+
+# QUESTION 2 - Make a hierarchical clustering plot and add the tissue types as labels.
+# You will observe multiple branches.
+# Which tissue type is in the branch farthest to the left?
+h <- hclust(d)
+plot(h)
+
+# QUESTION 3 - 
+# Select the 50 most variable genes.
+library(RColorBrewer)
+sds <- matrixStats::colSds(tissue_gene_expression$x)
+ind <- order(sds, decreasing = TRUE)[1:50]
+colors <- brewer.pal(7, "Dark2")[as.numeric(tissue_gene_expression$y)]
+heatmap(t(tissue_gene_expression$x[,ind]), col = brewer.pal(11, "RdBu"), scale = "row", ColSideColors = colors)
+
+
+
+####### 7.1 Final Assessment: Breast Cancer Prediction Project ##########
