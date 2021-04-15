@@ -208,52 +208,65 @@ user_movie_effect <- RMSE(predicted_ratings, test_set$rating)
 user_movie_effect
 
 # REGULARIZTION (We wanto to obtain an optimal penalization for users and movies with few rating as they have high standard errors)
+lambdas <- seq(0, 10, 0.5)
 
-regularization <- function(lambda, trainset, testset){
+rmses <- sapply(lambdas, function(l){
   
-  # mean
-  mu <- mean(trainset$rating)
+  mu <- mean(train_set$rating)
   
-  # movie effect 
-  b_i <- trainset %>%
+  b_i <- train_set %>%
     group_by(movieId) %>%
-    summarise(b_i = (rating - mu) / lambda)
+    summarise(b_i = sum(rating - mu) / (n() + l))
   
-  # user effect
-  b_u <- trainset %>%
+  b_u <- train_set %>%
     left_join(b_i, by = "movieId") %>%
-    filter(!is.na(b_i)) %>%
     group_by(userId) %>%
-    summarise(b_u = (rating - mu - b_i) / lambda)
+    summarise(b_u = sum(rating - mu - b_i) / (n() + l))
   
-  # predict
-  y_hat <- trainset %>%
+  predicted_ratings <- test_set %>%
     left_join(b_i, by = "movieId") %>%
     left_join(b_u, by = "userId") %>%
-    filter(!is.na(b_i), !is.na(b_u)) %>%
-    mutate(prediction = mu + b_i + b_u) %>%
-    pull(prediction)
-    
-  # RMSE
-  return(RMSE(y_hat, testset$rating))
+    mutate(predictions = mu + b_i + b_u) %>%
+    .$predictions
   
-}
+  return(RMSE(test_set$rating, predicted_ratings))
+  
+  })
 
-lambdas <- seq(0, 10, 3)
+qplot(lambdas, rmses)  
 
-RMSEs <- sapply(lambdas, 
-                regularization,
-                trainset = train_set,
-                testset = test_set)
-
-
-tibble(Lambda = lambdas, RMSE = RMSEs) %>%
-  ggplot(aes(x = Lambda, y = RMSE)) +
-  geom_point() +
-  ggtitle("Regularization", 
-          subtitle = "Pick the penalization that gives the lowest RMSE.")
+lambdas[which.min(rmses)]
 
 
+# MATRIX FACTORIZATION
+
+# recon system library
+if(!require(recosystem)) 
+  install.packages("recosystem", repos = "http://cran.us.r-project.org")
+library(recosystem)
+
+train_data <-  with(train_set, data_memory(user_index = userId, 
+                                           item_index = movieId, 
+                                           rating     = rating))
+test_data  <-  with(test_set,  data_memory(user_index = userId, 
+                                           item_index = movieId, 
+                                           rating     = rating))
+
+r <- recosystem::Reco()
+
+# optimized parameters
+opts <- r$tune(train_data, opts = list(dim = c(10, 20, 30), 
+                                       lrate = c(0.1, 0.2),
+                                       costp_l2 = c(0.01, 0.1), 
+                                       costq_l2 = c(0.01, 0.1),
+                                       nthread  = 4, niter = 10))
+
+# train the algorithm 
+r$train(train_data, opts = c(opts$min, nthread = 4, niter = 20))
+
+# calculate predicted values
+y_hat_reco <- r$predict(test_data, out_memory())
+RMSE(test_set$rating, y_hat_reco)
 
 
-
+write.table(movielens)
